@@ -2,6 +2,8 @@ package com.example.gatewayservice.controller;
 
 import com.example.gatewayservice.models.rqrs.Response;
 import com.example.gatewayservice.models.user.UserLoginRq;
+import com.example.gatewayservice.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,15 +12,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/gateway/api")
+@RequestMapping("/gateway/api/user")
 public class GatewayController {
+
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping("/test")
     public ResponseEntity<?> testAPI(){
         return new ResponseEntity<>("API Ready",HttpStatus.OK);
     }
 
-    @PostMapping("user/login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody UserLoginRq userLoginRq){
         Response response = new Response();
@@ -34,5 +39,14 @@ public class GatewayController {
 
         response.setSuccess(serviceRs);
         return new ResponseEntity<>(response, response.getHttpStatus());
+    }
+
+    @GetMapping("/getAll")
+    public ResponseEntity<?> login(){
+        Response response = new Response();
+
+        response.setSuccess(userRepository.findAll());
+        return new ResponseEntity<>(response, response.getHttpStatus());
+
     }
 }

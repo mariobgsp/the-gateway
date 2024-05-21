@@ -11,7 +11,7 @@ services:
       mode: replicated
       replicas: 1
     environment:
-      - POSTGRES_MULTIPLE_DATABASES=user
+      - POSTGRES_MULTIPLE_DATABASES=gateway
       - POSTGRES_USER=microservices
       - POSTGRES_PASSWORD=password
     volumes:
