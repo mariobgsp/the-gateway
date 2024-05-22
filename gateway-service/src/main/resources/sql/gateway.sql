@@ -47,3 +47,8 @@ CREATE TABLE "user".system_properties (
 
 INSERT INTO "user".system_properties ("key", value) VALUES('admin_secret_key', '3VZ6lDdJZ/4k8dQ5HgO7w4XwZ8tTrHAlf4A5KJb/VZ8=');
 INSERT INTO "user".system_properties ("key", value) VALUES('user_secret_key', 'Xfh7NxjW2D5BfgZzWfZpSj9KZv7OeVvL5jQy4UO4lGg=');
+
+ALTER TABLE "user"."user"
+ADD CONSTRAINT fk_role
+FOREIGN KEY (user_role_id)
+REFERENCES "user"."role" (id);
