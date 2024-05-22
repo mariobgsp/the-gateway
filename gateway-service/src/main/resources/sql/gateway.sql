@@ -24,6 +24,10 @@ CREATE TABLE "user"."role" (
     updated_at TIMESTAMP
 );
 
+INSERT INTO "user"."role" (role, created_at, updated_at) VALUES
+('admin', NOW(), NOW()),
+('user', NOW(), NOW());
+
 CREATE TABLE "user".user_log (
     id SERIAL PRIMARY KEY,
     user_id bigint,
@@ -34,3 +38,12 @@ CREATE TABLE "user".user_log (
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );
+
+CREATE TABLE "user".system_properties (
+    id SERIAL PRIMARY KEY,
+    key varchar(255),
+    value varchar(255)
+);
+
+INSERT INTO "user".system_properties ("key", value) VALUES('admin_secret_key', '3VZ6lDdJZ/4k8dQ5HgO7w4XwZ8tTrHAlf4A5KJb/VZ8=');
+INSERT INTO "user".system_properties ("key", value) VALUES('user_secret_key', 'Xfh7NxjW2D5BfgZzWfZpSj9KZv7OeVvL5jQy4UO4lGg=');

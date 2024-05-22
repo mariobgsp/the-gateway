@@ -3,6 +3,9 @@ package com.example.gatewayservice.models.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -20,11 +23,16 @@ public class User {
     private String username;
     private String password;
     private String email;
-    private Long userRoleId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_role_id")
+    private Role role;
     private String userSessionStatus;
     private LocalDateTime userLastLogin;
     private LocalDateTime userLastChangePassword;
+    @CreationTimestamp
     private LocalDateTime createdAt;
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     public Long getId() {
@@ -57,14 +65,6 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public Long getUserRoleId() {
-        return userRoleId;
-    }
-
-    public void setUserRoleId(Long userRoleId) {
-        this.userRoleId = userRoleId;
     }
 
     public String getUserSessionStatus() {
@@ -105,5 +105,13 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role userRoleId) {
+        this.role = userRoleId;
     }
 }

@@ -13,7 +13,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/gateway/api/user")
-public class GatewayController {
+public class UserController {
 
     @Autowired
     private UserRepository userRepository;
@@ -26,8 +26,10 @@ public class GatewayController {
     @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody UserLoginRq userLoginRq){
-        Response response = new Response();
+        Response<Object> response = new Response();
         Map<String, Object> serviceRs = new LinkedHashMap<>();
+
+
 
         serviceRs.put("loginMessage", "login successful!");
         serviceRs.put("sessionStatus","ACTIVE");
