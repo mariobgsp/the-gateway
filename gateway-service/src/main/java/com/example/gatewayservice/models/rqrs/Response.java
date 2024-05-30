@@ -44,9 +44,10 @@ public class Response<T> {
     }
 
     public void setError(HttpStatus httpStatus, String code, String message){
-        this.httpStatus = httpStatus;
-        this.code = code;
-        this.message = message;
+
+        this.httpStatus = httpStatus!=null? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
+        this.code = code !=null ? code : "99";
+        this.message = message !=null ? message : "UnknownError";
     }
 
 }

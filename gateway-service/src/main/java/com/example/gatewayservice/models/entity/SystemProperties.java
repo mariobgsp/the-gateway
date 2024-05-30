@@ -11,6 +11,8 @@ public class SystemProperties {
     private Long id;
     private String key;
     private String value;
+    private String description;
+    private String vgroup;
 
     public Long getId() {
         return id;
@@ -34,5 +36,21 @@ public class SystemProperties {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getVgroup() {
+        return vgroup;
+    }
+
+    public void setVgroup(String vgroup) {
+        this.vgroup = vgroup;
     }
 }

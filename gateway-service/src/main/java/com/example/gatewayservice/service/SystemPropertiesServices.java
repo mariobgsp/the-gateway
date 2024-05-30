@@ -15,6 +15,9 @@ public class SystemPropertiesServices {
 
     public String getSystemProperties(String key){
         Optional<SystemProperties> s = systemPropertiesRepository.findByKey(key);
-        return s.get().getValue();
+        if(s.isPresent()){
+            return s.get().getValue();
+        }
+        return "";
     }
 }

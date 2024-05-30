@@ -35,6 +35,7 @@ CREATE TABLE "user".user_log (
     user_session_status varchar(20),
     user_session varchar(255),
     user_token varchar(255),
+    error_message varchar(255),
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );
@@ -45,10 +46,25 @@ CREATE TABLE "user".system_properties (
     value varchar(255)
 );
 
+alter table "user".system_properties
+add column description varchar(255);
+
 INSERT INTO "user".system_properties ("key", value) VALUES('admin_secret_key', '3VZ6lDdJZ/4k8dQ5HgO7w4XwZ8tTrHAlf4A5KJb/VZ8=');
 INSERT INTO "user".system_properties ("key", value) VALUES('user_secret_key', 'Xfh7NxjW2D5BfgZzWfZpSj9KZv7OeVvL5jQy4UO4lGg=');
+INSERT INTO "user".system_properties ("key", value) VALUES('user_session_time', '600');
+INSERT INTO "user".system_properties ("key", value) VALUES('admin_session_time', '1800');
+INSERT INTO "user".system_properties ("key", value) VALUES('login_activity_name', 'LOGIN');
+INSERT INTO "user".system_properties ("key", value) VALUES('active_session_status', 'ACTIVE');
+INSERT INTO "user".system_properties ("key", value) VALUES('failed_session_status', 'FAILED-LOGIN');
+INSERT INTO "user".system_properties ("key", value) VALUES('inactive_session_status', 'INACTIVE');
+INSERT INTO "user".system_properties ("key", value) VALUES('logout_activity_name', 'LOGOUT');
 
 ALTER TABLE "user"."user"
 ADD CONSTRAINT fk_role
 FOREIGN KEY (user_role_id)
 REFERENCES "user"."role" (id);
+
+ALTER TABLE "user".user_log
+ADD CONSTRAINT fk_user
+FOREIGN KEY (user_id)
+REFERENCES "user"."user" (id);
