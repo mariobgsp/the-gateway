@@ -3,6 +3,7 @@ package com.example.gatewayservice.service;
 import com.example.gatewayservice.exception.definition.InvalidSessionException;
 import com.example.gatewayservice.exception.definition.InvalidUserException;
 import com.example.gatewayservice.exception.definition.UserNotFoundException;
+import com.example.gatewayservice.models.entity.Role;
 import com.example.gatewayservice.models.entity.User;
 import com.example.gatewayservice.models.entity.UserLog;
 import com.example.gatewayservice.models.rqrs.Response;
@@ -91,9 +92,15 @@ public class UserServices extends UserUtilityServices{
 
     public Response<Object> validateSession(String token){
         Response<Object> rs = new Response<>();
+        String sessionStatus = "";
+        String activityName = "";
+        UserLog userLog = new UserLog();
 
         try{
-            UserLog userLog = findUserLogDetailedByToken(token);
+            sessionStatus = systemPropertiesServices.getSystemProperties("active_session_status");
+            activityName = systemPropertiesServices.getSystemProperties("validate_activity_name");
+
+            userLog = findUserLogDetailedByToken(token);
             if(userLog==null){
                 throw new InvalidSessionException("invalid session, please re-login!");
             }
@@ -101,11 +108,30 @@ public class UserServices extends UserUtilityServices{
             if(user.getUserSessionStatus().equals("INACTIVE")){
                 throw new InvalidSessionException("invalid session, please re-login!");
             }
+            Role role = findUserRole(user.getUsername());
 
+            if(checkSessionV2(user, role.getRole())){
+                // renew userLog
+                userLog = findUserLogByToken(token);
+                userLog.setUserActivityName(activityName);
+                userLog.setUserSessionStatus(sessionStatus);
+            }else{
+                throw new InvalidSessionException("invalid session, please re-login!");
+            };
 
-
+            rs.setSuccessMessage("API Ready to Test!");
         }catch (Exception e){
+            Map error = (Map) e;
+            sessionStatus = systemPropertiesServices.getSystemProperties("inactive_session_status");
 
+            // renew userLog
+            userLog = findUserLogByToken(token);
+            userLog.setUserActivityName(activityName);
+            userLog.setUserSessionStatus(sessionStatus);
+            userLog.setErrorMessage(e.getMessage());
+
+            log.error("error logout {}", e.getMessage());
+            rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
         }
         return rs;
     }

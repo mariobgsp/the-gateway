@@ -12,7 +12,7 @@ public interface UserLogRepository extends JpaRepository<UserLog, Long> {
 
     Optional<UserLog> findByUserToken(String token);
 
-    @Query("select ul from userLog ul " +
+    @Query("select ul from UserLog ul " +
             "left join fetch ul.user u " +
             "where userToken = :token ")
     Optional<UserLog> findUserLogByToken(String token);

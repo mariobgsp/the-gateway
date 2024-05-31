@@ -4,6 +4,7 @@ import com.example.gatewayservice.exception.definition.InternalErrorException;
 import com.example.gatewayservice.exception.definition.InvalidSessionException;
 import com.example.gatewayservice.exception.definition.InvalidUserException;
 import com.example.gatewayservice.exception.definition.UserNotFoundException;
+import com.example.gatewayservice.models.entity.Role;
 import com.example.gatewayservice.models.entity.User;
 import com.example.gatewayservice.models.entity.UserLog;
 import com.example.gatewayservice.models.user.UserLoginRq;
@@ -99,6 +100,24 @@ public class UserUtilityServices {
         }
     }
 
+    public boolean checkSessionV2(User user, String role) throws Exception{
+
+        // count depends on role
+        int sessionTime = Integer.parseInt(systemPropertiesServices.getSystemProperties(role+"_session_time"));
+        LocalDateTime userLastLogin = user.getUserLastLogin();
+        LocalDateTime currentTime = DateTimeUtil.getCurrentDateTime();
+
+        long minutesDifference = ChronoUnit.MINUTES.between(userLastLogin, currentTime);
+
+        if (minutesDifference >= -sessionTime && minutesDifference <= sessionTime) {
+            System.out.println("User's last login is within " + sessionTime + " minutes of the current time.");
+            return true;
+        } else {
+            System.out.println("User's last login is more than " + sessionTime + " minutes ago or in the future.");
+            return false;
+        }
+    }
+
     public UserLog findUserLogByToken(String token){
         Optional<UserLog> userLog = userLogRepository.findByUserToken(token);
         if(userLog.isEmpty()){
@@ -134,5 +153,13 @@ public class UserUtilityServices {
         }catch (Exception e){
             log.error("failed updateUser{}", e.getMessage());
         }
+    }
+
+    public Role findUserRole(String username) throws UserNotFoundException {
+        Optional<User> user = userRepository.findDetailedByUsername(username);
+        if(user.isEmpty()){
+            throw new UserNotFoundException("user not found");
+        }
+        return user.get().getRole();
     }
 }

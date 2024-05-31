@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-@RequestMapping("/gateway/api/user")
+@RequestMapping("/api/user")
 public class UserController {
 
     @Autowired
@@ -26,9 +26,8 @@ public class UserController {
     @GetMapping("/test")
     public ResponseEntity<?> testAPI(
             @RequestHeader(name = "token") String token){
-
-
-        return new ResponseEntity<>("API Ready",HttpStatus.OK);
+        Response<Object> rs = userServices.validateSession(token);
+        return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
     @PostMapping("/login")
@@ -45,7 +44,7 @@ public class UserController {
 
         CompletableFuture.runAsync(()->userServices.logout(userLoginRq, token));
         Response<Object> rs = new Response<>();
-        rs.setSuccess();
+        rs.setSuccessAccepted();
         return new ResponseEntity<>(rs, rs.getHttpStatus());
 
     }

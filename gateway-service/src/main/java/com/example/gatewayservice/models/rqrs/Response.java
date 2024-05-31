@@ -22,6 +22,12 @@ public class Response<T> {
         this.message = "success";
     }
 
+    public void setSuccessMessage(String message){
+        this.httpStatus = HttpStatus.OK;
+        this.code = "00";
+        this.message = message;
+    }
+
     public void setSuccess(T data){
         this.httpStatus = HttpStatus.OK;
         this.code = "00";
@@ -41,6 +47,12 @@ public class Response<T> {
         this.code = "00";
         this.message = message;
         this.data = data;
+    }
+
+    public void setSuccessAccepted(){
+        this.httpStatus = HttpStatus.ACCEPTED;
+        this.code = "00";
+        this.message = "request being process";
     }
 
     public void setError(HttpStatus httpStatus, String code, String message){
