@@ -11,7 +11,7 @@ import org.springframework.data.annotation.CreatedDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_log", schema = "\"user\"")
+@Table(name = "user_log", schema = "public")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

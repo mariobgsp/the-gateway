@@ -3,7 +3,7 @@ package com.example.gatewayservice.models.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "system_properties", schema = "\"user\"")
+@Table(name = "system_properties", schema = "public")
 public class SystemProperties {
 
     @Id
