@@ -1,4 +1,3 @@
-
 CREATE TABLE public."user" (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -68,6 +67,7 @@ ADD CONSTRAINT fk_user
 FOREIGN KEY (user_id)
 REFERENCES public."user" (id);
 
+drop table public.store_account;
 create table public.store_account(
 	id SERIAL primary key,
 	store_name varchar(255),
@@ -90,28 +90,25 @@ ADD CONSTRAINT fk_store_id
 FOREIGN KEY (store_id)
 REFERENCES public.store_account (id);
 
-CREATE TABLE public.gateway (
+drop table public.api_gateway;
+
+select * from public.api_gateway ag ;
+CREATE TABLE public.api_gateway (
     id SERIAL PRIMARY KEY,
     api_name varchar(255), -- Example API name
+    api_identifier varchar(255),
     api_host varchar(255), -- https://localhost:8080
     api_path varchar(255), -- /examplePath1
     method varchar(20), --PUT, POST, GET, delete etc
-    header varchar(255), --header: ax-request-id;Content type, etc it will be splitted and inputed accordingly
-    is_request_body varchar(10), -- yes or no
-    is_request_param varchar(10), -- yes or no
+    header varchar(255), --header: ax-request-id;Content-type, etc it will be splitted and inputed accordingly
+    require_request_body boolean, -- yes or no
+    require_request_param boolean, -- yes or no
     param varchar(255), -- param: phoneNumber;requestId; etch it will be splitted and inputed accordingly
-    store_id bigint,
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );
 
-ALTER TABLE public.gateway
-ADD CONSTRAINT fk_store_id
-FOREIGN KEY (store_id)
-REFERENCES public.store_account (id);
-
-INSERT INTO public.gateway (api_name, api_host, api_path, method, header, is_request_body, is_request_param, param, created_at, updated_at) VALUES
-('Example API 1', 'https://localhost:8080', '/examplePath1', 'POST', 'ax-request-id;Content-Type', 'yes', 'no', 'phoneNumber;requestId', NOW(), NOW()),
-('Example API 2', 'https://localhost:8081', '/examplePath2', 'GET', 'auth-token;Content-Type', 'no', 'yes', 'userId;sessionId', NOW(), NOW());
-
---select * from public.gateway
+INSERT INTO public.api_gateway (api_name, api_identifier, api_host, api_path, method, header, require_request_body, require_request_param, param, created_at, updated_at) VALUES
+('Gateway-Example-1','gateway-example-1', 'https://localhost:8080', '/examplePath1', 'POST', 'ax-request-id;Content-Type', true, false, 'phoneNumber;requestId', NOW(), NOW()),
+('Gateway-Example-1','gateway-example-1', 'https://localhost:8081', '/examplePath2', 'GET', 'x-auth-token;Content-Type', false, true, 'userId;sessionId', NOW(), NOW()),
+('Gateway-catApi','gateway-catapi', 'https://api.thecatapi.com', '/v1/images/search', 'GET', 'x-api-key;Content-Type', false, false, null, NOW(), NOW());
