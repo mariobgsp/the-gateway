@@ -14,7 +14,7 @@ public class UtilityTest {
 
     @Test
     public void encodePasswordTest(){
-        String password = "password123";
+        String password = "securepassword";
 
         String encoded = bCryptPasswordEncoder.encode(password);
         System.out.println(encoded);
