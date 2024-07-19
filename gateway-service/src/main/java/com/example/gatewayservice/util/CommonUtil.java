@@ -1,7 +1,5 @@
 package com.example.gatewayservice.util;
 
-import com.example.gatewayservice.models.entity.User;
-import com.example.gatewayservice.models.entity.UserLog;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 
@@ -10,22 +8,6 @@ import java.util.Map;
 
 @Slf4j
 public class CommonUtil {
-
-    public static UserLog constructUserLog(
-            User user,
-            String userActivityName,
-            String userSessionStatus,
-            String userSession,
-            String userToken,
-            String errorMessage){
-        return new UserLog(
-                user,
-                userActivityName,
-                userSessionStatus,
-                userSession,
-                userToken,
-                errorMessage);
-    }
 
     public static Map<String, Object> processRequest(String path, HttpHeaders httpHeaders, Object requestBody){
 
@@ -38,7 +20,7 @@ public class CommonUtil {
 
         String pathName = arrPath[0];
         String queryString = arrPath.length > 1 ? arrPath[1] : "";
-        Map<String, Object> queryParams = CommonUtil.parseQueryString(queryString);
+        Map<String, Object> queryParams = parseQueryString(queryString);
 
         Map<String, Object> pathMap = new HashMap<>();
         pathMap.put("pathName", pathName);
