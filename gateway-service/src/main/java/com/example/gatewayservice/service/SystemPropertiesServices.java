@@ -13,7 +13,7 @@ public class SystemPropertiesServices {
     @Autowired
     private SystemPropertiesRepository systemPropertiesRepository;
 
-    public String getSystemProperties(String key){
+    public String getProps(String key){
         Optional<SystemProperties> s = systemPropertiesRepository.findByKey(key);
         if(s.isPresent()){
             return s.get().getValue();

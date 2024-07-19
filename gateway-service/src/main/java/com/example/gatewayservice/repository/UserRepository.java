@@ -17,9 +17,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "left join fetch u.role " +
             "where username = :username ")
     Optional<User> findDetailedByUsername(String username);
-
-    @Query("select u from User u " +
-            "left join fetch u.role " +
-            "where username = :username ")
-    User findDetailedByUsernameV2(String username);
 }
