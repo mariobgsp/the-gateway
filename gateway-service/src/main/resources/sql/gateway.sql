@@ -31,14 +31,10 @@ INSERT INTO public."role" (role, created_at, updated_at) VALUES
 ('admin', NOW(), NOW()),
 ('user', NOW(), NOW());
 
-CREATE TABLE public.user_log (
+CREATE TABLE public.token_log (
     id SERIAL PRIMARY KEY,
-    user_id bigint,
-    user_activity_name varchar(255),
-    user_session_status varchar(20),
-    user_session varchar(255),
-    user_token varchar(255),
-    error_message varchar(255),
+    token varchar(255),
+    status varchar(255),
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );
@@ -55,15 +51,8 @@ add column description varchar(255);
 alter table public.system_properties
 add column vgroup varchar(255);
 
-INSERT INTO public.system_properties ("key", value) VALUES('admin_secret_key', '3VZ6lDdJZ/4k8dQ5HgO7w4XwZ8tTrHAlf4A5KJb/VZ8=');
-INSERT INTO public.system_properties ("key", value) VALUES('user_secret_key', 'Xfh7NxjW2D5BfgZzWfZpSj9KZv7OeVvL5jQy4UO4lGg=');
-INSERT INTO public.system_properties ("key", value) VALUES('user_session_time', '600');
-INSERT INTO public.system_properties ("key", value) VALUES('admin_session_time', '1800');
-INSERT INTO public.system_properties ("key", value) VALUES('login_activity_name', 'LOGIN');
-INSERT INTO public.system_properties ("key", value) VALUES('active_session_status', 'ACTIVE');
-INSERT INTO public.system_properties ("key", value) VALUES('failed_session_status', 'FAILED-LOGIN');
-INSERT INTO public.system_properties ("key", value) VALUES('inactive_session_status', 'INACTIVE');
-INSERT INTO public.system_properties ("key", value) VALUES('logout_activity_name', 'LOGOUT');
+INSERT INTO public.system_properties ("key", value) VALUES('TOKEN_SECRET_KEY', '3VZ6lDdJZ/4k8dQ5HgO7w4XwZ8tTrHAlf4A5KJb/VZ8=');
+INSERT INTO public.system_properties ("key", value) VALUES('TOKEN_EXPIRATION', '3600');
 
 ALTER TABLE public."user" ADD CONSTRAINT fk_role FOREIGN KEY (user_role_id) REFERENCES public."role" (id);
 
