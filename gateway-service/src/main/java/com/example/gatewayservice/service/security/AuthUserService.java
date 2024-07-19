@@ -1,5 +1,6 @@
 package com.example.gatewayservice.service.security;
 
+import com.example.gatewayservice.exception.definition.InvalidRequestException;
 import com.example.gatewayservice.exception.definition.UserNotFoundException;
 import com.example.gatewayservice.models.entity.User;
 import com.example.gatewayservice.models.rqrs.Response;
@@ -70,9 +71,12 @@ public class AuthUserService {
             rs.setSuccess(userLoginRs);
         }catch (Exception e){
             log.error("error authLogin {}", e.getMessage());
-            e.printStackTrace();
             Map error = (Map) e;
-            rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
+            if(error.get("errorCode")!=null){
+                rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
+            }else{
+                rs.setError(e.getMessage());
+            }
         }
         log.info("done authLogin {}", rs);
         return rs;
@@ -103,13 +107,16 @@ public class AuthUserService {
 
                 rs.setSuccess(userLoginRs);
             }else{
-
+                throw new InvalidRequestException("Authorization header should not be empty");
             }
 
         }catch (Exception e){
-            log.error("error authLogout", e);
             Map error = (Map) e;
-            rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
+            if(error.get("errorCode")!=null){
+                rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
+            }else{
+                rs.setError(e.getMessage());
+            }
         }
         log.info("done authLogout {}", rs);
         return rs;

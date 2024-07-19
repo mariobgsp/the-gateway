@@ -1,5 +1,7 @@
 package com.example.gatewayservice.util;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 
@@ -8,6 +10,8 @@ import java.util.Map;
 
 @Slf4j
 public class CommonUtil {
+
+    public static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
     public static Map<String, Object> processRequest(String path, HttpHeaders httpHeaders, Object requestBody){
 
