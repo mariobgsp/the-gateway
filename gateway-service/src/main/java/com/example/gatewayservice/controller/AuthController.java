@@ -18,27 +18,28 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/gateway")
 public class AuthController {
 
     @Autowired
     private AuthUserService authUserService;
 
-    @PostMapping("/login")
+    @PostMapping("/user/login")
     public ResponseEntity<?> authenticateUser(@RequestBody UserLoginRq request) {
         Response<Object> rs = authUserService.authLogin(request);
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/user/logout")
     public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String authorizationHeader) {
         Response<Object> rs = authUserService.authLogout(authorizationHeader);
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
 
-    @PostMapping("/testAuth")
+    @GetMapping("/user/testAuth")
     public ResponseEntity<?>  testAuth() {
         Response<Object> rs = new Response<>();
-        rs.setSuccess("success authentication!");
+        rs.setSuccessMessage("success authentication!");
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
 }
