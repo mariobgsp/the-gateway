@@ -77,7 +77,11 @@ public class ApiGatewayServices {
         }catch (Exception e){
             log.error("error processForwardApi", e);
             Map error = (Map) e;
-            rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
+            if(error.get("errorCode")!=null){
+                rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
+            }else{
+                rs.setError(e.getMessage());
+            }
         }
         return rs;
     }
