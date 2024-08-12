@@ -2,10 +2,16 @@ package com.example.gatewayservice.service;
 
 import com.example.gatewayservice.exception.definition.ApiGatewayNotFoundException;
 import com.example.gatewayservice.exception.definition.InvalidRequestException;
+import com.example.gatewayservice.exception.models.CommonException;
 import com.example.gatewayservice.models.entity.ApiGateway;
+import com.example.gatewayservice.models.entity.StoreAccount;
+import com.example.gatewayservice.models.entity.StoreApiAccess;
 import com.example.gatewayservice.models.rqrs.Response;
 import com.example.gatewayservice.models.rqrs.custom.GatewayRs;
+import com.example.gatewayservice.models.rqrs.request.PublishRq;
 import com.example.gatewayservice.repository.ApiGatewayRepository;
+import com.example.gatewayservice.repository.StoreAccountRepository;
+import com.example.gatewayservice.repository.StoreApiAccessRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -22,6 +28,7 @@ public class ApiGatewayServices {
     @Autowired
     private HttpServices httpServices;
 
+
     public Response<Object> processForwardApi(Map<String, Object> request
     ){
         Response<Object> rs = new Response<>();
@@ -30,13 +37,17 @@ public class ApiGatewayServices {
             String pathName = (String) path.get("pathName");
             Map<String, Object> httpHeadrs = (Map<String, Object>) request.get("httpHeaders");
             Map<String, Object> requestParam = (Map<String, Object>) request.get("requestParam");
-            Object requestBody = (Object) request.get("requestBody");
+            Object requestBody = request.get("requestBody");
 
             Optional<ApiGateway> ag = apiGatewayRepository.findByApiIdentifier(pathName);
             if(ag.isEmpty()){
                 throw new ApiGatewayNotFoundException("API Gateway Configuration Not Found");
             }
             ApiGateway apiGateway = ag.get();
+
+            // TODO validate using store account and validate key to hit api
+            // TODO validate any key required
+            // TODO make method to generate key
 
             // construct Url
             StringBuilder url = new StringBuilder(apiGateway.getApiHost() + apiGateway.getApiPath());
@@ -77,65 +88,26 @@ public class ApiGatewayServices {
             rs.setSuccess(response.getBody());
         }catch (Exception e){
             log.error("error processForwardApi", e);
-            Map error = (Map) e;
-            if(error.get("errorCode")!=null){
-                rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
-            }else{
-                rs.setError(e.getMessage());
-            }
+            CommonException co = e instanceof CommonException ? (CommonException) e : new CommonException(e);
+            rs.setError(co.getHttpStatus(), co.getHttpStatus().name(), co.getErrorCode(), co.getErrorMessage());
         }
         return rs;
     }
 
-    public Response<Object> getListGateways(){
-        List<GatewayRs> newList = new ArrayList<>();
-        Response<Object> rs = new Response<>();
-        try{
-            List<ApiGateway> list = apiGatewayRepository.findAll();
-            for (ApiGateway api : list){
-                GatewayRs gatewayRs = new GatewayRs();
-                gatewayRs.setId(api.getId());
-                gatewayRs.setApiName(api.getApiName());
-                gatewayRs.setApiIdentifier(api.getApiIdentifier());
-                gatewayRs.setStatus(api.getStatus());
-
-                newList.add(gatewayRs);
-            }
-            rs.setSuccess(newList);
-        }catch (Exception e){
-            log.error("error processForwardApi", e);
-            Map error = (Map) e;
-            if(error.get("errorCode")!=null){
-                rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
-            }else{
-                rs.setError(e.getMessage());
-            }
-        }
-        return rs;
-    }
-
-    public Response<Object> getApiDetailed(String apiIdentifier){
+    public Response<Object> generateToken(String accessToken){
         Response<Object> rs = new Response<>();
 
         try{
-            Optional<ApiGateway> api = apiGatewayRepository.findByApiIdentifier(apiIdentifier);
-            if(api.isEmpty()){
-                throw new ApiGatewayNotFoundException("api not found!");
-            }
 
-            rs.setSuccess(api);
+
         }catch (Exception e){
             log.error("error processForwardApi", e);
-            Map error = (Map) e;
-            if(error.get("errorCode")!=null){
-                rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
-            }else{
-                rs.setError(e.getMessage());
-            }
+            CommonException co = e instanceof CommonException ? (CommonException) e : new CommonException(e);
+            rs.setError(co.getHttpStatus(), co.getHttpStatus().name(), co.getErrorCode(), co.getErrorMessage());
         }
 
         return rs;
-
     }
+
 
 }

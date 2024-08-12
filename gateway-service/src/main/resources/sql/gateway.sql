@@ -54,6 +54,8 @@ add column vgroup varchar(255);
 INSERT INTO public.system_properties ("key", value) VALUES('TOKEN_SECRET_KEY', '3VZ6lDdJZ/4k8dQ5HgO7w4XwZ8tTrHAlf4A5KJb/VZ8=');
 INSERT INTO public.system_properties ("key", value) VALUES('TOKEN_EXPIRATION', '3600');
 
+INSERT INTO public.system_properties ("key", value) VALUES('API_EXPIRATION_TIME', '86400');
+
 ALTER TABLE public."user" ADD CONSTRAINT fk_role FOREIGN KEY (user_role_id) REFERENCES public."role" (id);
 
 ALTER TABLE public.user_log

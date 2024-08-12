@@ -1,2 +1,10 @@
-package com.example.gatewayservice.exception.definition;public class UnauthorizedRequest {
+package com.example.gatewayservice.exception.definition;
+
+import com.example.gatewayservice.exception.models.CommonException;
+import org.springframework.http.HttpStatus;
+
+public class UnauthorizedRequest extends CommonException {
+    public UnauthorizedRequest() {
+        super(HttpStatus.UNAUTHORIZED, "023", "Unauthorized Request", "Unauthorized Request");
+    }
 }

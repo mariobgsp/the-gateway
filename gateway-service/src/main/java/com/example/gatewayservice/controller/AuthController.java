@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/gateway")
+@RequestMapping("api/gateway")
 public class AuthController {
 
     @Autowired
@@ -33,13 +33,6 @@ public class AuthController {
     @PostMapping("/user/logout")
     public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String authorizationHeader) {
         Response<Object> rs = authUserService.authLogout(authorizationHeader);
-        return new ResponseEntity<>(rs, rs.getHttpStatus());
-    }
-
-    @GetMapping("/user/testAuth")
-    public ResponseEntity<?>  testAuth() {
-        Response<Object> rs = new Response<>();
-        rs.setSuccessMessage("success authentication!");
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
 }

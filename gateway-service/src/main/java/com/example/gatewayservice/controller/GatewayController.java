@@ -1,6 +1,7 @@
 package com.example.gatewayservice.controller;
 
 import com.example.gatewayservice.models.rqrs.Response;
+import com.example.gatewayservice.models.rqrs.request.PublishRq;
 import com.example.gatewayservice.service.ApiGatewayServices;
 import com.example.gatewayservice.util.CommonUtil;
 import jakarta.servlet.http.HttpServlet;
@@ -17,7 +18,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/gateway")
+@RequestMapping("/api/gateway/f")
 public class GatewayController {
 
     @Autowired
@@ -34,19 +35,15 @@ public class GatewayController {
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
 
-    @RequestMapping(value = "/getApiList", method = RequestMethod.GET)
-    public ResponseEntity<?> getApiList(){
-        Response<Object> rs = apiGatewayServices.getListGateways();
+    @RequestMapping(value = "/token", method = RequestMethod.POST)
+    public ResponseEntity<?> generateToken(
+            @RequestHeader(name="Authorization") String accessToken){
+
+        // it will receive Bearer secretKey:ClientId SHA-256
+
+
+        Response<Object> rs = apiGatewayServices.generateToken(accessToken);
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
-
-    @RequestMapping(value = "/getDetailedApi", method = RequestMethod.POST)
-    public ResponseEntity<?> getDetailedApi(@RequestParam("api_identifier") String apiIdentifier){
-        Response<Object> rs = apiGatewayServices.getApiDetailed(apiIdentifier);
-        return new ResponseEntity<>(rs, rs.getHttpStatus());
-    }
-
-
-
 
 }
