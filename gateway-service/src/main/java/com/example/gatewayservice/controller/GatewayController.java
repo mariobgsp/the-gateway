@@ -23,37 +23,8 @@ public class GatewayController {
     @Autowired
     private ApiGatewayServices apiGatewayServices;
 
-    @PostMapping("/forward/test1/{path}")
-    public ResponseEntity<?> testGateway(
-            @RequestHeader HttpHeaders httpHeaders,
-            @PathVariable String path, // path should be encoded to get entire request as example `?` as `%3F`
-            @RequestBody(required = false) Object requestBody){
-
-        log.info("received request: {}", path);
-        Map<String, Object> testResponse = new HashMap<>();
-        testResponse.put("httpHeaders", httpHeaders);
-
-        // process path
-        String[] arrPath = path.split("\\?");
-
-        String pathName = arrPath[0];
-        String queryString = arrPath.length > 1 ? arrPath[1] : "";
-        Map<String, Object> queryParams = CommonUtil.parseQueryString(queryString);
-
-        Map<String, Object> pathMap = new HashMap<>();
-        pathMap.put("pathName", pathName);
-        pathMap.put("requestParam", queryParams);
-
-        testResponse.put("path", pathMap);
-
-        testResponse.put("requestBody", requestBody);
-
-        return new ResponseEntity<>(testResponse, HttpStatus.OK);
-
-    }
-
-    @GetMapping("/forward/test2/{path}")
-    public ResponseEntity<?> testGateway2(
+    @RequestMapping(value = "/{path}", method = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
+    public ResponseEntity<?> forwardApi(
             @RequestHeader HttpHeaders httpHeaders,
             @PathVariable String path, // path should be encoded to get entire request as example `?` as `%3F`
             @RequestBody(required = false) Object requestBody){
@@ -61,7 +32,21 @@ public class GatewayController {
         Map<String, Object> processedRq = CommonUtil.processRequest(path, httpHeaders, requestBody);
         Response<Object> rs = apiGatewayServices.processForwardApi(processedRq);
         return new ResponseEntity<>(rs, rs.getHttpStatus());
-
-
     }
+
+    @RequestMapping(value = "/getApiList", method = RequestMethod.GET)
+    public ResponseEntity<?> getApiList(){
+        Response<Object> rs = apiGatewayServices.getListGateways();
+        return new ResponseEntity<>(rs, rs.getHttpStatus());
+    }
+
+    @RequestMapping(value = "/getDetailedApi", method = RequestMethod.POST)
+    public ResponseEntity<?> getDetailedApi(@RequestParam("api_identifier") String apiIdentifier){
+        Response<Object> rs = apiGatewayServices.getApiDetailed(apiIdentifier);
+        return new ResponseEntity<>(rs, rs.getHttpStatus());
+    }
+
+
+
+
 }

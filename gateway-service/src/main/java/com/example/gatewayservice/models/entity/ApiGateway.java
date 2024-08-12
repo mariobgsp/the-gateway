@@ -28,6 +28,9 @@ public class ApiGateway {
     @Column(name = "api_path", length = 255)
     private String apiPath;
 
+    @Column(name = "status", length = 255)
+    private String status;
+
     @Column(name = "method", length = 20)
     private String method;
 
@@ -48,8 +51,6 @@ public class ApiGateway {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    // Getters and Setters
 
     public Long getId() {
         return id;
@@ -89,6 +90,14 @@ public class ApiGateway {
 
     public void setApiPath(String apiPath) {
         this.apiPath = apiPath;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getMethod() {
@@ -146,5 +155,4 @@ public class ApiGateway {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-
 }
