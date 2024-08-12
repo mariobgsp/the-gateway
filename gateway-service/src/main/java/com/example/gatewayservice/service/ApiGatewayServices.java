@@ -4,6 +4,7 @@ import com.example.gatewayservice.exception.definition.ApiGatewayNotFoundExcepti
 import com.example.gatewayservice.exception.definition.InvalidRequestException;
 import com.example.gatewayservice.models.entity.ApiGateway;
 import com.example.gatewayservice.models.rqrs.Response;
+import com.example.gatewayservice.models.rqrs.custom.GatewayRs;
 import com.example.gatewayservice.repository.ApiGatewayRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +85,57 @@ public class ApiGatewayServices {
             }
         }
         return rs;
+    }
+
+    public Response<Object> getListGateways(){
+        List<GatewayRs> newList = new ArrayList<>();
+        Response<Object> rs = new Response<>();
+        try{
+            List<ApiGateway> list = apiGatewayRepository.findAll();
+            for (ApiGateway api : list){
+                GatewayRs gatewayRs = new GatewayRs();
+                gatewayRs.setId(api.getId());
+                gatewayRs.setApiName(api.getApiName());
+                gatewayRs.setApiIdentifier(api.getApiIdentifier());
+                gatewayRs.setStatus(api.getStatus());
+
+                newList.add(gatewayRs);
+            }
+            rs.setSuccess(newList);
+        }catch (Exception e){
+            log.error("error processForwardApi", e);
+            Map error = (Map) e;
+            if(error.get("errorCode")!=null){
+                rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
+            }else{
+                rs.setError(e.getMessage());
+            }
+        }
+        return rs;
+    }
+
+    public Response<Object> getApiDetailed(String apiIdentifier){
+        Response<Object> rs = new Response<>();
+
+        try{
+            Optional<ApiGateway> api = apiGatewayRepository.findByApiIdentifier(apiIdentifier);
+            if(api.isEmpty()){
+                throw new ApiGatewayNotFoundException("api not found!");
+            }
+
+            rs.setSuccess(api);
+        }catch (Exception e){
+            log.error("error processForwardApi", e);
+            Map error = (Map) e;
+            if(error.get("errorCode")!=null){
+                rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
+            }else{
+                rs.setError(e.getMessage());
+            }
+        }
+
+        return rs;
+
     }
 
 }
