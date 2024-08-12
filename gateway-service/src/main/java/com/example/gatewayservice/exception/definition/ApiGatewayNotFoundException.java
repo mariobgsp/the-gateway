@@ -5,6 +5,6 @@ import org.springframework.http.HttpStatus;
 
 public class ApiGatewayNotFoundException extends CommonException {
     public ApiGatewayNotFoundException(String errorMessage) {
-        super(HttpStatus.NOT_FOUND, "05", errorMessage, errorMessage);
+        super(HttpStatus.NOT_FOUND, "02", "02:NotFound:"+errorMessage, "02:NotFound:"+errorMessage);
     }
 }
