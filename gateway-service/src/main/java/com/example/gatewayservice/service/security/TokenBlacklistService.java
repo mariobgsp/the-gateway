@@ -1,7 +1,6 @@
 package com.example.gatewayservice.service.security;
 
 import com.example.gatewayservice.models.entity.TokenLog;
-import com.example.gatewayservice.models.entity.User;
 import com.example.gatewayservice.repository.security.TokenLogRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +33,7 @@ public class TokenBlacklistService {
 
     public boolean isTokenBlacklisted(String token) {
         TokenLog tokenLog = tokenLogRepository.findByToken(token);
-        if(tokenLog==null){
+        if (tokenLog == null) {
             return true;
         }
 

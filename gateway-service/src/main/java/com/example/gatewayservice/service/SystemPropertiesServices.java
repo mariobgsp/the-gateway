@@ -13,9 +13,9 @@ public class SystemPropertiesServices {
     @Autowired
     private SystemPropertiesRepository systemPropertiesRepository;
 
-    public String getProps(String key){
+    public String getProps(String key) {
         Optional<SystemProperties> s = systemPropertiesRepository.findByKey(key);
-        if(s.isPresent()){
+        if (s.isPresent()) {
             return s.get().getValue();
         }
         return "";

@@ -4,13 +4,10 @@ import com.example.gatewayservice.models.rqrs.Response;
 import com.example.gatewayservice.service.security.TokenBlacklistService;
 import com.example.gatewayservice.util.CommonUtil;
 import com.example.gatewayservice.util.JwtUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,7 +36,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         response.setCharacterEncoding("UTF-8");
 
         Response<Object> rs = new Response<>();
-        rs.setError(HttpStatus.valueOf(status), HttpStatus.valueOf(status).name(),"98", "98:Unauthorized:"+message) ;
+        rs.setError(HttpStatus.valueOf(status), HttpStatus.valueOf(status).name(), "98", "98:Unauthorized:" + message);
 
         PrintWriter out = response.getWriter();
         out.print(CommonUtil.gson.toJson(rs));

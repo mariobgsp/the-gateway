@@ -24,21 +24,21 @@ public class Response<T> {
     @Expose
     private String errorMessage;
 
-    public void setSuccess(){
+    public void setSuccess() {
         this.httpStatus = HttpStatus.OK;
         this.status = "ok";
         this.code = "00";
         this.message = "success";
     }
 
-    public void setSuccessMessage(String message){
+    public void setSuccessMessage(String message) {
         this.httpStatus = HttpStatus.OK;
         this.status = "ok";
         this.code = "00";
         this.message = message;
     }
 
-    public void setSuccess(T data){
+    public void setSuccess(T data) {
         this.httpStatus = HttpStatus.OK;
         this.status = "ok";
         this.code = "00";
@@ -46,7 +46,7 @@ public class Response<T> {
         this.data = data;
     }
 
-    public void setSuccess(String message, T data){
+    public void setSuccess(String message, T data) {
         this.httpStatus = HttpStatus.OK;
         this.status = "ok";
         this.code = "00";
@@ -54,7 +54,7 @@ public class Response<T> {
         this.data = data;
     }
 
-    public void setSuccessAccepted(String message, T data){
+    public void setSuccessAccepted(String message, T data) {
         this.httpStatus = HttpStatus.ACCEPTED;
         this.status = "accepted";
         this.code = "00";
@@ -62,27 +62,27 @@ public class Response<T> {
         this.data = data;
     }
 
-    public void setSuccessAccepted(){
+    public void setSuccessAccepted() {
         this.httpStatus = HttpStatus.ACCEPTED;
         this.status = "accepted";
         this.code = "00";
         this.message = "request being process";
     }
 
-    public void setError(HttpStatus httpStatus, String status, String code, String message){
+    public void setError(HttpStatus httpStatus, String status, String code, String message) {
 
-        this.httpStatus = httpStatus!=null? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
+        this.httpStatus = httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
         this.status = status;
-        this.code = code !=null ? code : "99";
-        this.message = message !=null ? message : "UnknownError";
+        this.code = code != null ? code : "99";
+        this.message = message != null ? message : "UnknownError";
     }
 
-    public void setError(String message){
+    public void setError(String message) {
 
-        this.httpStatus = httpStatus!=null? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
-        this.status = status !=null ? status : "unknownError";
-        this.code = code !=null ? code : "99";
-        this.message = message !=null ? message : "UnknownError";
+        this.httpStatus = httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
+        this.status = status != null ? status : "unknownError";
+        this.code = code != null ? code : "99";
+        this.message = message != null ? message : "UnknownError";
     }
 
 }

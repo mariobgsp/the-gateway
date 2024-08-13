@@ -39,13 +39,13 @@ public class AuthUserService {
     @Autowired
     private UserRepository userRepository;
 
-    public Response<Object> authLogin(UserLoginRq request){
+    public Response<Object> authLogin(UserLoginRq request) {
         log.info("start authLogin {}", request);
         Response<Object> rs = new Response<>();
 
-        try{
+        try {
             Optional<User> user = userRepository.findDetailedByUsername(request.getUsername());
-            if(user.isEmpty()){
+            if (user.isEmpty()) {
                 throw new UserNotFoundException("user not found!");
             }
 
@@ -69,12 +69,12 @@ public class AuthUserService {
             userLoginRs.setTokenLifetime(propertiesServices.getProps("TOKEN_EXPIRATION"));
 
             rs.setSuccess(userLoginRs);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("error authLogin {}", e.getMessage());
             Map error = (Map) e;
-            if(error.get("errorCode")!=null){
+            if (error.get("errorCode") != null) {
                 rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
-            }else{
+            } else {
                 rs.setError(e.getMessage());
             }
         }
@@ -82,7 +82,7 @@ public class AuthUserService {
         return rs;
     }
 
-    public Response<Object> authLogout(String authHeader){
+    public Response<Object> authLogout(String authHeader) {
         log.info("start authLogout {}", authHeader);
         Response<Object> rs = new Response<>();
 
@@ -90,11 +90,11 @@ public class AuthUserService {
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String token = authHeader.substring(7);
                 String username = jwtUtil.getUsernameFromToken(token);
-                boolean isSuccess =tokenBlacklistService.blacklistToken(token);
+                boolean isSuccess = tokenBlacklistService.blacklistToken(token);
                 log.info("is success blacklist {}", isSuccess);
 
                 Optional<User> user = userRepository.findDetailedByUsername(username);
-                if(user.isEmpty()){
+                if (user.isEmpty()) {
                     throw new UserNotFoundException("user not found!");
                 }
 
@@ -106,15 +106,15 @@ public class AuthUserService {
                 userLoginRs.setLogoutMessage("success logout!");
 
                 rs.setSuccess(userLoginRs);
-            }else{
+            } else {
                 throw new InvalidRequestException("Authorization header should not be empty");
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             Map error = (Map) e;
-            if(error.get("errorCode")!=null){
+            if (error.get("errorCode") != null) {
                 rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
-            }else{
+            } else {
                 rs.setError(e.getMessage());
             }
         }

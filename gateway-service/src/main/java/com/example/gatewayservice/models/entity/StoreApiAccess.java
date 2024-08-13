@@ -19,7 +19,7 @@ public class StoreApiAccess {
     private StoreAccount storeAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="gateway_id")
+    @JoinColumn(name = "gateway_id")
     private ApiGateway apiGateway;
 
     public Long getId() {
