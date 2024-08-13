@@ -1,12 +1,13 @@
-package com.example.gatewayservice.repository.security;
+package com.example.gatewayservice.repository;
 
 import com.example.gatewayservice.models.entity.TokenLog;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-@Repository
+import java.util.List;
+
 public interface TokenLogRepository extends JpaRepository<TokenLog, Long> {
 
-    TokenLog findByToken(String token);
+    List<TokenLog> findByStatus(String status);
+
 
 }

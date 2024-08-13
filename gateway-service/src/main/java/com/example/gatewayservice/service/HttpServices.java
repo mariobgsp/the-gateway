@@ -8,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
-
 @Service
 @Slf4j
 public class HttpServices {
@@ -17,9 +15,9 @@ public class HttpServices {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public ResponseEntity<Object> invokeUrl(String url,
-                            HttpMethod httpMethod,
-                            HttpHeaders httpHeaders,
-                            Object requestBody){
+                                            HttpMethod httpMethod,
+                                            HttpHeaders httpHeaders,
+                                            Object requestBody) {
 
         log.info("process forwarding API!");
         log.info("construct url result: {}", url);

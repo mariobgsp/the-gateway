@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @Setter
-public class CommonException extends Exception{
+public class CommonException extends Exception {
 
     private HttpStatus httpStatus;
     private String errorCode;
@@ -20,11 +20,11 @@ public class CommonException extends Exception{
         this.errorDisplayMessage = errorDisplayMessage;
     }
 
-    public CommonException(Exception e){
+    public CommonException(Exception e) {
         this.httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         this.errorCode = "99";
-        this.errorMessage = "Internal Unknown Error:"+e.getMessage();
-        this.errorDisplayMessage = "Internal Unknown Error:"+e.getMessage();
+        this.errorMessage = "Internal Unknown Error:" + e.getMessage();
+        this.errorDisplayMessage = "Internal Unknown Error:" + e.getMessage();
     }
 
 }

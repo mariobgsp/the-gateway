@@ -13,7 +13,7 @@ public class UtilityTest {
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     @Test
-    public void encodePasswordTest(){
+    public void encodePasswordTest() {
         String password = "password123";
 
         String encoded = bCryptPasswordEncoder.encode(password);

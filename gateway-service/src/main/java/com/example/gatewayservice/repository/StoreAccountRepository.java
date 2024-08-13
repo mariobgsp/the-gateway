@@ -9,4 +9,5 @@ public interface StoreAccountRepository extends JpaRepository<StoreAccount, Long
 
     Optional<StoreAccount> findByStoreCode(String storeCode);
 
+    Optional<StoreAccount> findByClientIdAndSecretKey(String clientId, String secretKey);
 }

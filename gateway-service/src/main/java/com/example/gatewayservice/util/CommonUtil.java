@@ -13,7 +13,7 @@ public class CommonUtil {
 
     public static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
-    public static Map<String, Object> processRequest(String path, HttpHeaders httpHeaders, Object requestBody){
+    public static Map<String, Object> processRequest(String path, HttpHeaders httpHeaders, Object requestBody) {
 
         log.info("received request: {}", path);
         Map<String, Object> request = new HashMap<>();
