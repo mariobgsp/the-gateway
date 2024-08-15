@@ -1,19 +1,15 @@
 package com.example.gatewayservice.service;
 
-import com.example.gatewayservice.exception.definition.ApiGatewayNotFoundException;
-import com.example.gatewayservice.exception.definition.InvalidRequestException;
-import com.example.gatewayservice.exception.definition.StoreAccountInvalidCredentials;
+import com.example.gatewayservice.exception.definition.*;
 import com.example.gatewayservice.exception.models.CommonException;
-import com.example.gatewayservice.models.entity.ApiGateway;
-import com.example.gatewayservice.models.entity.StoreAccount;
-import com.example.gatewayservice.models.entity.StoreApiAccess;
-import com.example.gatewayservice.models.entity.TokenLog;
+import com.example.gatewayservice.models.entity.*;
 import com.example.gatewayservice.models.rqrs.Response;
 import com.example.gatewayservice.repository.ApiGatewayRepository;
 import com.example.gatewayservice.repository.StoreAccountRepository;
-import com.example.gatewayservice.repository.TokenLogRepository;
+import com.example.gatewayservice.repository.TokenAccessLogRepository;
 import com.example.gatewayservice.util.SecretKeyUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.antlr.v4.runtime.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -33,9 +29,7 @@ public class ApiGatewayServices {
     @Autowired
     private StoreAccountRepository storeAccountRep;
     @Autowired
-    private StoreApiAccess storeApiAccess;
-    @Autowired
-    private TokenLogRepository tokenLogRepository;
+    private TokenAccessLogRepository tokenAccessLogRepository;
     @Autowired
     private SystemPropertiesServices systemPropertiesServices;
 
@@ -43,11 +37,14 @@ public class ApiGatewayServices {
     ) {
         Response<Object> rs = new Response<>();
         try {
-            Map path = (Map) request.get("path");
+            Map<String, Object> path = (Map<String, Object>) request.get("path");
             String pathName = (String) path.get("pathName");
             Map<String, Object> httpHeadrs = (Map<String, Object>) request.get("httpHeaders");
             Map<String, Object> requestParam = (Map<String, Object>) request.get("requestParam");
             Object requestBody = request.get("requestBody");
+
+            //get props
+            String statusActive = systemPropertiesServices.getProps("TOKEN_ACCESS_ACTIVE_STATUS");
 
             Optional<ApiGateway> ag = apiGatewayRepository.findByApiIdentifier(pathName);
             if (ag.isEmpty()) {
@@ -55,47 +52,56 @@ public class ApiGatewayServices {
             }
             ApiGateway apiGateway = ag.get();
 
-            // TODO validate using store account and validate key to hit api
-            // TODO validate any key required
-            // TODO make method to generate key
-
-            // construct Url
-            StringBuilder url = new StringBuilder(apiGateway.getApiHost() + apiGateway.getApiPath());
-
-            // construct header
-            HttpHeaders httpHeaders = new HttpHeaders();
-            List<String> httpHeadersConfig = Arrays.asList(apiGateway.getHeader().split(";"));
-            for (Map.Entry<String, Object> entry : httpHeadrs.entrySet()) {
-                if (httpHeadersConfig.contains(entry.getKey())) {
-                    httpHeaders.put(entry.getKey(), Collections.singletonList(entry.getValue().toString()));
+            // check if status published
+            if(apiGateway.getStatus().equals("PUBLISHED")){
+                String token = ((String) httpHeadrs.get("Authorization")).replace("Bearer ", "");
+                //check token log
+                Optional<TokenAccessLog> accessLog = tokenAccessLogRepository.findByTokenAndStatus(token, statusActive);
+                if(accessLog.isEmpty()){
+                    throw new TokenInactiveException("inactive token access");
                 }
-            }
 
-            // check by configuration
-            if (apiGateway.getRequireRequestParam() && requestParam == null) {
-                throw new InvalidRequestException("Bad request: emptyRequestParam");
-            } else if (apiGateway.getRequireRequestParam() && requestParam != null) {
-                url.append("?");
+                // valid flow start forwarding
+                // construct Url
+                StringBuilder url = new StringBuilder(apiGateway.getApiHost() + apiGateway.getApiPath());
 
-                List<String> paramConfig = Arrays.asList(apiGateway.getParam().split(";"));
-                for (Map.Entry<String, Object> entry : requestParam.entrySet()) {
-                    if (paramConfig.contains(entry.getKey())) {
-                        url.append(entry.getKey()).append("=").append(entry.getValue());
+                // construct header
+                HttpHeaders httpHeaders = new HttpHeaders();
+                List<String> httpHeadersConfig = Arrays.asList(apiGateway.getHeader().split(";"));
+                for (Map.Entry<String, Object> entry : httpHeadrs.entrySet()) {
+                    if (httpHeadersConfig.contains(entry.getKey())) {
+                        httpHeaders.put(entry.getKey(), Collections.singletonList(entry.getValue().toString()));
                     }
                 }
+
+                // check by configuration
+                if (apiGateway.getRequireRequestParam() && requestParam == null) {
+                    throw new InvalidRequestException("Bad request: emptyRequestParam");
+                } else if (apiGateway.getRequireRequestParam() && requestParam != null) {
+                    url.append("?");
+
+                    List<String> paramConfig = Arrays.asList(apiGateway.getParam().split(";"));
+                    for (Map.Entry<String, Object> entry : requestParam.entrySet()) {
+                        if (paramConfig.contains(entry.getKey())) {
+                            url.append(entry.getKey()).append("=").append(entry.getValue());
+                        }
+                    }
+                }
+
+                if (apiGateway.getRequireRequestBody() && requestBody == null) {
+                    throw new InvalidRequestException("Bad request: emptyRequestBody");
+                }
+
+                ResponseEntity<Object> response = httpServices.invokeUrl(
+                        url.toString(),
+                        HttpMethod.valueOf(apiGateway.getMethod()),
+                        httpHeaders,
+                        requestBody);
+
+                rs.setSuccess(response.getBody());
+            }else{
+                throw new UnpublishedException("API unpublished");
             }
-
-            if (apiGateway.getRequireRequestBody() && requestBody == null) {
-                throw new InvalidRequestException("Bad request: emptyRequestBody");
-            }
-
-            ResponseEntity<Object> response = httpServices.invokeUrl(
-                    url.toString(),
-                    HttpMethod.valueOf(apiGateway.getMethod()),
-                    httpHeaders,
-                    requestBody);
-
-            rs.setSuccess(response.getBody());
         } catch (Exception e) {
             log.error("error processForwardApi", e);
             CommonException co = e instanceof CommonException ? (CommonException) e : new CommonException(e);
@@ -120,19 +126,19 @@ public class ApiGatewayServices {
             // generate token
             String key = UUID.randomUUID().toString();
 
-            String status = systemPropertiesServices.getProps("TOKEN_ACTIVE_STATUS");
-            int expiringTime = Integer.parseInt(systemPropertiesServices.getProps("api_access_time"));
+            String status = systemPropertiesServices.getProps("TOKEN_ACCESS_ACTIVE_STATUS");
+            int expiringTime = Integer.parseInt(systemPropertiesServices.getProps("API_ACCESS_TIME"));
 
             Map<String, Object> result = new LinkedHashMap<>();
             result.put("accessToken", key);
             result.put("expiringIn", expiringTime);
 
-            TokenLog tokenLog = new TokenLog();
+            TokenAccessLog tokenLog = new TokenAccessLog();
             tokenLog.setToken(key);
             tokenLog.setStatus(status);
             tokenLog.setStoreAccount(storeAccount.get());
 
-            tokenLogRepository.save(tokenLog);
+            tokenAccessLogRepository.save(tokenLog);
         } catch (Exception e) {
             log.error("error processForwardApi", e);
             CommonException co = e instanceof CommonException ? (CommonException) e : new CommonException(e);

@@ -1,7 +1,8 @@
 package com.example.gatewayservice.service;
 
+import com.example.gatewayservice.models.entity.TokenAccessLog;
 import com.example.gatewayservice.models.entity.TokenLog;
-import com.example.gatewayservice.repository.TokenLogRepository;
+import com.example.gatewayservice.repository.TokenAccessLogRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -15,29 +16,29 @@ import java.util.List;
 public class SchedulerServices {
 
     @Autowired
-    private TokenLogRepository tokenLogRepository;
+    private TokenAccessLogRepository tokenAccessLogRepository;
     @Autowired
     private SystemPropertiesServices systemPropertiesServices;
 
     public void checkToken() {
-        String statusActive = systemPropertiesServices.getProps("token_active_status");
-        String statusDeactive = systemPropertiesServices.getProps("token_deactive_status");
+        String statusActive = systemPropertiesServices.getProps("TOKEN_ACCESS_ACTIVE_STATUS");
+        String statusInactive = systemPropertiesServices.getProps("TOKEN_ACCESS_INACTIVE_STATUS");
 
         // in minutes
-        long expiringTime = Long.parseLong(systemPropertiesServices.getProps("api_access_time"));
+        long expiringTime = Long.parseLong(systemPropertiesServices.getProps("API_ACCESS_TIME"));
 
         // deactivate if time now exceeding
-        List<TokenLog> tokenLogList = tokenLogRepository.findByStatus(statusActive);
-        for (TokenLog tl : tokenLogList) {
+        List<TokenAccessLog> tokenLogList = tokenAccessLogRepository.findByStatus(statusActive);
+        for (TokenAccessLog tl : tokenLogList) {
             LocalDateTime created = tl.getCreatedAt();
             LocalDateTime now = LocalDateTime.now();
 
             long hoursDifference = Duration.between(created, now).toMinutes();
             if (hoursDifference > expiringTime) {
-                tl.setStatus(statusDeactive);
-                tokenLogRepository.save(tl);
+                tl.setStatus(statusInactive);
+                tokenAccessLogRepository.save(tl);
             } else {
-                log.info("token still active");
+                log.info("token {} still active", tl.getId());
             }
         }
     }

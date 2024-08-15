@@ -15,3 +15,16 @@ services:
     volumes:
       - ./db-data/postgres/:/var/lib/postgresql/data/
       - ./pg-init-scripts:/docker-entrypoint-initdb.d
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data:/root/redis
+    environment:
+      - REDIS_PASSWORD=my-password
+      - REDIS_PORT=6379
+      - REDIS_DATABASES=0

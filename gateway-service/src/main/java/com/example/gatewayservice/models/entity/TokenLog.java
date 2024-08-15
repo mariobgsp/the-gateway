@@ -15,8 +15,6 @@ public class TokenLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @JoinColumn(name = "store_account_id")
-    private StoreAccount storeAccount;
     private String token;
     private String status;
 

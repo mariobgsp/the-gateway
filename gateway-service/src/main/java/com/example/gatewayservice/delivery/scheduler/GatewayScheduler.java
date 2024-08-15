@@ -20,4 +20,6 @@ public class GatewayScheduler {
         log.info("end check expired token");
     }
 
+    // TODO add redis config to properties-config
+
 }

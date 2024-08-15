@@ -21,7 +21,7 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class ApiConfigService {
+public class ApiConfigServices {
 
     @Autowired
     private ApiGatewayRepository apiGatewayRepository;

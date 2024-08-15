@@ -51,10 +51,11 @@ add column description varchar(255);
 alter table public.system_properties
 add column vgroup varchar(255);
 
-INSERT INTO public.system_properties ("key", value) VALUES('TOKEN_SECRET_KEY', '3VZ6lDdJZ/4k8dQ5HgO7w4XwZ8tTrHAlf4A5KJb/VZ8=');
-INSERT INTO public.system_properties ("key", value) VALUES('TOKEN_EXPIRATION', '3600');
-
-INSERT INTO public.system_properties ("key", value) VALUES('API_EXPIRATION_TIME', '86400');
+INSERT INTO public.system_properties ("key", value, vgroup) VALUES('TOKEN_SECRET_KEY', '3VZ6lDdJZ/4k8dQ5HgO7w4XwZ8tTrHAlf4A5KJb/VZ8=', "gateway-services");
+INSERT INTO public.system_properties ("key", value, vgroup) VALUES('TOKEN_EXPIRATION', '3600', "gateway-services");
+INSERT INTO public.system_properties ("key", value, vgroup) VALUES('TOKEN_ACCESS_ACTIVE_STATUS', 'ACTIVE', "gateway-services");
+INSERT INTO public.system_properties ("key", value, vgroup) VALUES('TOKEN_ACCESS_INACTIVE_STATUS', 'INACTIVE', "gateway-services");
+INSERT INTO public.system_properties ("key", value, vgroup) VALUES('API_EXPIRATION_TIME', '86400', "gateway-services");
 
 ALTER TABLE public."user" ADD CONSTRAINT fk_role FOREIGN KEY (user_role_id) REFERENCES public."role" (id);
 
@@ -107,6 +108,6 @@ CREATE TABLE public.api_gateway (
 INSERT INTO public.api_gateway (api_name, api_identifier, api_host, api_path, method, header, require_request_body, require_request_param, param, created_at, updated_at) VALUES 
 ('Gateway-Example-1','gateway-example-1', 'https://localhost:8080', '/examplePath1', 'POST', 'ax-request-id;Content-Type', true, false, 'phoneNumber;requestId', NOW(), NOW()), 
 ('Gateway-Example-1','gateway-example-1', 'https://localhost:8081', '/examplePath2', 'GET', 'x-auth-token;Content-Type', false, true, 'userId;sessionId', NOW(), NOW()),
-('Gateway-catApi','gateway-catapi', 'https://api.thecatapi.com', '/v1/images/search', 'GET', 'x-api-key;Content-Type', false, false, null, NOW(), NOW());
+('Gateway-CatApi','gateway-catapi', 'https://api.thecatapi.com', '/v1/images/search', 'GET', 'x-api-key;Content-Type', false, false, null, NOW(), NOW());
 
 --select * from public.gateway

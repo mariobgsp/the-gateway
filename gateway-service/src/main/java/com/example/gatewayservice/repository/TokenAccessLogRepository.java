@@ -1,13 +1,19 @@
 package com.example.gatewayservice.repository;
 
+import com.example.gatewayservice.models.entity.TokenAccessLog;
 import com.example.gatewayservice.models.entity.TokenLog;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface TokenLogRepository extends JpaRepository<TokenLog, Long> {
+@Repository
+public interface TokenAccessLogRepository extends JpaRepository<TokenAccessLog, Long> {
 
-    List<TokenLog> findByStatus(String status);
+    List<TokenAccessLog> findByStatus(String status);
+
+    Optional<TokenAccessLog> findByTokenAndStatus(String token, String status);
 
 
 }
