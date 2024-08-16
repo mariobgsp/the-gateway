@@ -24,7 +24,4 @@ services:
       - "6379:6379"
     volumes:
       - ./data:/root/redis
-    environment:
-      - REDIS_PASSWORD=my-password
-      - REDIS_PORT=6379
-      - REDIS_DATABASES=0
+   

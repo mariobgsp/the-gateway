@@ -12,6 +12,7 @@ public class SystemProperties {
     private String key;
     private String value;
     private String description;
+    @Column(name = "vgroup")
     private String vgroup;
 
     public Long getId() {

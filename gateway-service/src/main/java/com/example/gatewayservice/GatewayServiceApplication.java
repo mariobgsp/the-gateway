@@ -2,19 +2,20 @@ package com.example.gatewayservice;
 
 import com.example.gatewayservice.models.entity.SystemProperties;
 import com.example.gatewayservice.repository.SystemPropertiesRepository;
-import com.example.gatewayservice.service.RedisServices;
 import com.example.gatewayservice.service.SystemPropertiesServices;
+import com.example.gatewayservice.service.redis.RedisServices;
+import com.example.gatewayservice.util.CommonUtil;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
 @Slf4j
@@ -24,6 +25,8 @@ public class GatewayServiceApplication {
     private SystemPropertiesRepository systemPropertiesRepository;
     @Autowired
     private RedisServices redisServices;
+    @Autowired
+    private SystemPropertiesServices systemPropertiesServices;
 
     public static void main(String[] args) {
         SpringApplication.run(GatewayServiceApplication.class, args);
@@ -35,18 +38,16 @@ public class GatewayServiceApplication {
         String propsName = "gateway-services";
 
         log.info("load redis configuration : {}", propsName );
-        List<Map<String,Object>> maps = new ArrayList<>();
+        Map<String,Object> spM = new HashMap<>();
         for (SystemProperties sp : list){
-            Map<String,Object> spM = new HashMap<>();
             spM.put(sp.getKey(), sp.getValue());
-            maps.add(spM);
         }
 
         // save at redis
-        redisServices.saveKey(propsName, maps);
+        redisServices.setWithTTL(propsName, CommonUtil.gson.toJson(spM), 60, TimeUnit.MINUTES);
         // get key
-        Object value = redisServices.getKey(propsName);
-        log.info("value : {}", value);
+        String appName = systemPropertiesServices.getProps("APP_NAME");
+        log.info("success get properties - {}", appName);
     }
 
 }
