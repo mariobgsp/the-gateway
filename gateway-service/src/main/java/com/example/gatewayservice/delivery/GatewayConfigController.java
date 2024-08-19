@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/gateway/config")
+@RequestMapping("/config")
 public class GatewayConfigController {
 
     @Autowired

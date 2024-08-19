@@ -8,19 +8,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/gateway")
+@RequestMapping("/user")
 public class AuthController {
 
     @Autowired
     private AuthUserService authUserService;
 
-    @PostMapping("/user/login")
+    @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody UserLoginRq request) {
         Response<Object> rs = authUserService.authLogin(request);
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
 
-    @PostMapping("/user/logout")
+    @PostMapping("/logout")
     public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String authorizationHeader) {
         Response<Object> rs = authUserService.authLogout(authorizationHeader);
         return new ResponseEntity<>(rs, rs.getHttpStatus());

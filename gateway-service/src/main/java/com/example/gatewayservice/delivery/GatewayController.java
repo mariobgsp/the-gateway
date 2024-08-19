@@ -13,7 +13,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("//")
+@RequestMapping("/gateway")
 public class GatewayController {
 
     @Autowired
