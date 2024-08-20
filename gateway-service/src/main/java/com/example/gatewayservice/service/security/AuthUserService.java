@@ -66,7 +66,7 @@ public class AuthUserService {
             UserLoginRs userLoginRs = new UserLoginRs();
             userLoginRs.setLoginMessage("success login!");
             userLoginRs.setAccessToken(accessToken);
-            userLoginRs.setTokenLifetime(propertiesServices.getProps("TOKEN_EXPIRATION"));
+            userLoginRs.setTokenLifetime(Long.valueOf(propertiesServices.getProps("TOKEN_EXPIRATION")));
 
             rs.setSuccess(userLoginRs);
         } catch (Exception e) {

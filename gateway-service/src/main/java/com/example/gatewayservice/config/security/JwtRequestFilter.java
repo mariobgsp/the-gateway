@@ -1,6 +1,7 @@
 package com.example.gatewayservice.config.security;
 
 import com.example.gatewayservice.models.rqrs.Response;
+import com.example.gatewayservice.service.SystemPropertiesServices;
 import com.example.gatewayservice.service.security.TokenBlacklistService;
 import com.example.gatewayservice.util.CommonUtil;
 import com.example.gatewayservice.util.JwtUtil;
@@ -21,6 +22,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 @Slf4j
@@ -31,6 +34,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
     @Autowired
     private TokenBlacklistService tokenBlacklistService;
+    @Autowired
+    private SystemPropertiesServices systemPropertiesServices;
 
     private void writeJsonResponse(HttpServletResponse response, int status, String message) throws IOException {
         response.setStatus(status);
@@ -50,7 +55,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         // Skip filter for permitted URLs
-        if (request.getRequestURI().equals("/user/login") || request.getRequestURI().equals("/user/logout") || request.getRequestURI().contains("/gateway/")) {
+        List<String> permittedApiList = Arrays.asList(systemPropertiesServices.getProps("PERMITTED_API_LIST").split(";"));
+        log.info("request URI {}", request.getRequestURI());
+        if (permittedApiList.contains(request.getRequestURI())) {
             chain.doFilter(request, response);
             return;
         }

@@ -22,7 +22,7 @@ public class GatewayConfigController {
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
 
-    @RequestMapping(value = "/getDetailedApi", method = RequestMethod.POST)
+    @RequestMapping(value = "/getDetailedApi", method = RequestMethod.GET)
     public ResponseEntity<?> getDetailedApi(@RequestParam("api_identifier") String apiIdentifier) {
         Response<Object> rs = apiConfigServices.getApiDetailed(apiIdentifier);
         return new ResponseEntity<>(rs, rs.getHttpStatus());

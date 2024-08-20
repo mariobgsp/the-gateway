@@ -6,5 +6,5 @@
 
 # ignore data
 /project/db-data/
-/project/data/
+/project/redis-data/
 /project/redis.conf

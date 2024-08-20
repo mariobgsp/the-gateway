@@ -13,7 +13,7 @@ services:
       - POSTGRES_USER=microservices
       - POSTGRES_PASSWORD=password
     volumes:
-      - ./db-data/postgres/:/var/lib/postgresql/data/
+      - ./db-data/postgres/:/var/lib/postgresql/db-data/
       - ./pg-init-scripts:/docker-entrypoint-initdb.d
 
   redis:
@@ -23,5 +23,5 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - ./data:/root/redis
+      - ./redis-data:/root/redis-data
    

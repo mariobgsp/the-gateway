@@ -10,6 +10,6 @@ public class UserLoginRs {
     private String loginMessage;
     private String logoutMessage;
     private String accessToken;
-    private String tokenLifetime;
+    private Long tokenLifetime;
 
 }

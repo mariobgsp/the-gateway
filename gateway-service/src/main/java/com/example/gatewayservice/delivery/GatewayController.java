@@ -35,7 +35,7 @@ public class GatewayController {
             @RequestHeader(name = "Authorization") String accessToken) {
 
         // it will receive Bearer secretKey:ClientId SHA-256
-        accessToken = accessToken.replace("Bearer", "");
+        accessToken = accessToken.replace("Bearer ", "");
 
         Response<Object> rs = apiGatewayServices.generateToken(accessToken);
         return new ResponseEntity<>(rs, rs.getHttpStatus());
