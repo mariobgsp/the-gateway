@@ -1,3 +1,10 @@
+# vs code 
 .vscode
 
+# idea cache 
 .idea
+
+# ignore data
+/project/db-data/
+/project/data/
+/project/redis.conf

@@ -49,6 +49,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        // Skip filter for permitted URLs
+        if (request.getRequestURI().equals("/user/login") || request.getRequestURI().equals("/user/logout") || request.getRequestURI().contains("/gateway/")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         final String authorizationHeader = request.getHeader("Authorization");
 
         String username = null;

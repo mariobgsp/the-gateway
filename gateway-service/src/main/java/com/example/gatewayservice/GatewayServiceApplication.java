@@ -34,20 +34,26 @@ public class GatewayServiceApplication {
 
     @PostConstruct
     public void initConfiguration(){
-        List<SystemProperties> list = systemPropertiesRepository.findByVgroup("gateway-services");
-        String propsName = "gateway-services";
+        try{
+            List<SystemProperties> list = systemPropertiesRepository.findByVgroup("gateway-services");
+            String propsName = "gateway-services";
 
-        log.info("load redis configuration : {}", propsName );
-        Map<String,Object> spM = new HashMap<>();
-        for (SystemProperties sp : list){
-            spM.put(sp.getKey(), sp.getValue());
+            log.info("load redis configuration : {}", propsName );
+            Map<String,Object> spM = new HashMap<>();
+            for (SystemProperties sp : list){
+                spM.put(sp.getKey(), sp.getValue());
+            }
+
+            // save at redis
+            redisServices.setWithTTL(propsName, CommonUtil.gson.toJson(spM), 60, TimeUnit.MINUTES);
+            // get key
+            String appName = systemPropertiesServices.getProps("APP_NAME");
+
+            log.info("success get properties - {}", appName);
+        } catch (Exception e){
+            log.info("failed load configuration {}", e.getMessage());
         }
 
-        // save at redis
-        redisServices.setWithTTL(propsName, CommonUtil.gson.toJson(spM), 60, TimeUnit.MINUTES);
-        // get key
-        String appName = systemPropertiesServices.getProps("APP_NAME");
-        log.info("success get properties - {}", appName);
     }
 
 }
