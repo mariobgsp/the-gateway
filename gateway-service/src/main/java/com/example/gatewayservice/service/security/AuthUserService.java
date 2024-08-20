@@ -2,6 +2,7 @@ package com.example.gatewayservice.service.security;
 
 import com.example.gatewayservice.exception.definition.InvalidRequestException;
 import com.example.gatewayservice.exception.definition.UserNotFoundException;
+import com.example.gatewayservice.exception.models.CommonException;
 import com.example.gatewayservice.models.entity.User;
 import com.example.gatewayservice.models.rqrs.Response;
 import com.example.gatewayservice.models.user.UserLoginRq;
@@ -19,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
@@ -58,6 +60,7 @@ public class AuthUserService {
 
             // set user ACTIVE session
             user.get().setUserSessionStatus("ACTIVE");
+            user.get().setUserLastLogin(LocalDateTime.now());
             userRepository.save(user.get());
 
             // save enabled token
@@ -71,12 +74,8 @@ public class AuthUserService {
             rs.setSuccess(userLoginRs);
         } catch (Exception e) {
             log.error("error authLogin {}", e.getMessage());
-            Map error = (Map) e;
-            if (error.get("errorCode") != null) {
-                rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
-            } else {
-                rs.setError(e.getMessage());
-            }
+            CommonException co = e instanceof CommonException ? (CommonException) e : new CommonException(e);
+            rs.setError(co.getHttpStatus(), co.getHttpStatus().name(), co.getErrorCode(), co.getErrorMessage());
         }
         log.info("done authLogin {}", rs);
         return rs;
@@ -111,12 +110,8 @@ public class AuthUserService {
             }
 
         } catch (Exception e) {
-            Map error = (Map) e;
-            if (error.get("errorCode") != null) {
-                rs.setError((HttpStatus) error.get("httpStatus"), (String) error.get("httpStatus"), (String) error.get("errorCode"), (String) error.get("errorMessage"));
-            } else {
-                rs.setError(e.getMessage());
-            }
+            CommonException co = e instanceof CommonException ? (CommonException) e : new CommonException(e);
+            rs.setError(co.getHttpStatus(), co.getHttpStatus().name(), co.getErrorCode(), co.getErrorMessage());
         }
         log.info("done authLogout {}", rs);
         return rs;

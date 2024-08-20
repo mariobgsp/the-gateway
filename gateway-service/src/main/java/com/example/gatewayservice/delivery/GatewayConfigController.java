@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @Slf4j
 @RestController
 @RequestMapping("/config")
@@ -22,9 +24,9 @@ public class GatewayConfigController {
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
 
-    @RequestMapping(value = "/getDetailedApi", method = RequestMethod.GET)
-    public ResponseEntity<?> getDetailedApi(@RequestParam("api_identifier") String apiIdentifier) {
-        Response<Object> rs = apiConfigServices.getApiDetailed(apiIdentifier);
+    @RequestMapping(value = "/getDetailedApi", method = RequestMethod.POST)
+    public ResponseEntity<?> getDetailedApi(@RequestBody Map<String,Object> request) {
+        Response<Object> rs = apiConfigServices.getApiDetailed((Long) request.get("apiId"));
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
 

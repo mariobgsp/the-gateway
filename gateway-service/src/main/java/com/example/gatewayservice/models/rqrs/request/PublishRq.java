@@ -2,24 +2,24 @@ package com.example.gatewayservice.models.rqrs.request;
 
 public class PublishRq {
 
-    private String apiIdentifier;
-    private String storeName;
+    private Long apiId;
+    private Long storeId;
     private String status;
 
-    public String getApiIdentifier() {
-        return apiIdentifier;
+    public Long getApiId() {
+        return apiId;
     }
 
-    public void setApiIdentifier(String apiIdentifier) {
-        this.apiIdentifier = apiIdentifier;
+    public void setApiId(Long apiId) {
+        this.apiId = apiId;
     }
 
-    public String getStoreName() {
-        return storeName;
+    public Long getStoreId() {
+        return storeId;
     }
 
-    public void setStoreName(String storeName) {
-        this.storeName = storeName;
+    public void setStoreId(Long storeId) {
+        this.storeId = storeId;
     }
 
     public String getStatus() {

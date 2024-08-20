@@ -1,6 +1,7 @@
 package com.example.gatewayservice.service;
 
 import com.example.gatewayservice.exception.definition.ApiGatewayNotFoundException;
+import com.example.gatewayservice.exception.definition.UpdateApiException;
 import com.example.gatewayservice.exception.models.CommonException;
 import com.example.gatewayservice.models.entity.ApiGateway;
 import com.example.gatewayservice.models.entity.StoreAccount;
@@ -13,6 +14,7 @@ import com.example.gatewayservice.repository.StoreAccountRepository;
 import com.example.gatewayservice.repository.StoreApiAccessRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -54,11 +56,11 @@ public class ApiConfigServices {
         return rs;
     }
 
-    public Response<Object> getApiDetailed(String apiIdentifier) {
+    public Response<Object> getApiDetailed(Long apiId) {
         Response<Object> rs = new Response<>();
 
         try {
-            Optional<ApiGateway> api = apiGatewayRepository.findByApiIdentifier(apiIdentifier);
+            Optional<ApiGateway> api = apiGatewayRepository.findById(apiId);
             if (api.isEmpty()) {
                 throw new ApiGatewayNotFoundException("api not found!");
             }
@@ -75,19 +77,40 @@ public class ApiConfigServices {
 
     public Response<Object> updateApi(PublishRq publishRq) {
         Response<Object> rs = new Response<>();
+        Boolean storeInsert = true;
 
         try {
             // find by identifier
-            Optional<ApiGateway> api = apiGatewayRepository.findByApiIdentifier(publishRq.getApiIdentifier());
+            Optional<ApiGateway> api = apiGatewayRepository.findById(publishRq.getApiId());
             if (api.isEmpty()) {
                 throw new ApiGatewayNotFoundException("api not found!");
             }
 
+            // check if exist on store account to avoid dups
+            List<StoreApiAccess> sa = storeApiAccessRepository.findByApiGateway(api.get());
+            // store in list string
+            List<Long> existingStoreId = new ArrayList<>(0);
+            if(!sa.isEmpty()){
+                for (StoreApiAccess s : sa){
+                    Optional<StoreAccount> str = storeAccountRepository.findById(s.getId());
+                    str.ifPresent(storeAccount -> existingStoreId.add(storeAccount.getId()));
+                }
+            }
+
+            if(existingStoreId.contains(publishRq.getStoreId())){
+                if(api.get().getStatus().equals("PUBLISH")){
+                    throw new UpdateApiException(HttpStatus.CONFLICT, "03", "api already published with same store");
+                }else{
+                    api.get().setStatus("PUBLISHED");
+                    storeInsert = false;
+                }
+            }
+
             Optional<StoreAccount> stAcc;
-            if(publishRq.getStatus().equals("PUBLISH")){
-                if (publishRq.getStoreName() == null) {
+            if(publishRq.getStatus().equals("PUBLISH") && storeInsert){
+                if (publishRq.getStoreId() == null) {
                     // set Default Key
-                    stAcc = storeAccountRepository.findByStoreCode("default");
+                    stAcc = storeAccountRepository.findByStoreCode("D1");
                     if (stAcc.isEmpty()) {
                         throw new ApiGatewayNotFoundException("store account not found!");
                     }
@@ -102,7 +125,7 @@ public class ApiConfigServices {
                     storeApiAccessRepository.save(storeApiAccess);
                 } else {
                     // find by storeAccount
-                    stAcc = storeAccountRepository.findByStoreCode(publishRq.getStoreName());
+                    stAcc = storeAccountRepository.findById(publishRq.getStoreId());
                     if (stAcc.isEmpty()) {
                         throw new ApiGatewayNotFoundException("store account not found!");
                     }
@@ -116,7 +139,7 @@ public class ApiConfigServices {
                     //save
                     storeApiAccessRepository.save(storeApiAccess);
                 }
-            }else{
+            }else if (storeInsert){
                 // DEPRECATE
                 api.get().setStatus("DEPRECATED");
             }

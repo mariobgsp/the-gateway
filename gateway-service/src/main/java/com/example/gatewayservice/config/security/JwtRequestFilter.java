@@ -56,8 +56,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         // Skip filter for permitted URLs
         List<String> permittedApiList = Arrays.asList(systemPropertiesServices.getProps("PERMITTED_API_LIST").split(";"));
-        log.info("request URI {}", request.getRequestURI());
-        if (permittedApiList.contains(request.getRequestURI())) {
+        boolean isPermitted = permittedApiList.stream().anyMatch(request.getRequestURI()::startsWith);
+        if (isPermitted) {
             chain.doFilter(request, response);
             return;
         }
