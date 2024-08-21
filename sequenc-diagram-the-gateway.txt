@@ -1,0 +1,67 @@
+title the-gateway-diagram
+
+actor "user" as us
+participant "my-gateway" as mg
+database "store_account" as sa
+database "api_gateway" as ag
+participant "example-service" as es
+
+alt user-login-logout
+us->mg:/login\n-username\n-password
+activate mg
+mg->mg:jwt process
+us<-mg:accessToken
+deactivate mg
+
+us->mg:/logout\n-accessToken
+activate mg
+mg->mg:deactivate access token
+us<-mg:ok
+deactivate mg
+end alt
+
+alt api-config
+us->mg:/get-api-list\n-accessToken
+activate mg
+us<-mg:apiList
+deactivate mg
+
+us->mg:/get-api-detail
+activate mg
+us<-mg:apiDetail
+deactivate mg
+
+us->mg:/publish
+activate mg
+us<-mg:ok
+deactivate mg
+us->mg:/getStoreAccountList
+activate mg
+mg->sa:getStoreAccountList
+mg<-sa:
+us<-mg:listStoreAccount
+deactivate mg
+
+us->mg:/getStoreAccountDetail
+activate mg
+mg->sa:getStoreAccountDetail
+mg<-sa:
+us<-mg:storeAccountDetail
+deactivate mg
+end alt
+
+alt api-forwarding
+us->mg:/token
+activate mg
+mg->sa:validate
+us<-mg:apiAccessToken
+deactivate mg
+us->mg:/{path}
+activate mg
+mg->ag:get request config
+mg->mg:invalidate
+mg->es:invoke request
+mg<-es:response
+us<-mg:response (forwarded)
+deactivate mg
+end alt
