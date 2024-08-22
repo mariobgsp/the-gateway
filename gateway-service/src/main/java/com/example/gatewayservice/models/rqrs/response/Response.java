@@ -80,7 +80,7 @@ public class Response<T> {
     public void setError(String message) {
 
         this.httpStatus = httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
-        this.status = status  = "unknownError";
+        this.status = status = "unknownError";
         this.code = code != null ? code : "99";
         this.message = message != null ? message : "UnknownError";
     }

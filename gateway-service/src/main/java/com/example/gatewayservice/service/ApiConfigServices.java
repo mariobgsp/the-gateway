@@ -6,13 +6,12 @@ import com.example.gatewayservice.models.entity.ApiGateway;
 import com.example.gatewayservice.models.entity.StoreAccount;
 import com.example.gatewayservice.models.entity.StoreApiAccess;
 import com.example.gatewayservice.models.entity.User;
+import com.example.gatewayservice.models.rqrs.custom.GatewayRs;
 import com.example.gatewayservice.models.rqrs.request.*;
 import com.example.gatewayservice.models.rqrs.response.Response;
-import com.example.gatewayservice.models.rqrs.custom.GatewayRs;
 import com.example.gatewayservice.repository.ApiGatewayRepository;
 import com.example.gatewayservice.repository.StoreAccountRepository;
 import com.example.gatewayservice.repository.StoreApiAccessRepository;
-import com.example.gatewayservice.repository.UserRepository;
 import com.example.gatewayservice.service.redis.RedisServices;
 import com.example.gatewayservice.service.security.AuthUserService;
 import com.example.gatewayservice.util.SecretKeyUtil;
@@ -231,23 +230,23 @@ public class ApiConfigServices {
         return rs;
     }
 
-    public Response<Object> updateStore(RequestInfo requestInfo, UpdateStoreRq updateStoreRq){
+    public Response<Object> updateStore(RequestInfo requestInfo, UpdateStoreRq updateStoreRq) {
         log.info("process request : {} : {}", Thread.currentThread().getStackTrace()[1].getMethodName(), requestInfo);
         Response<Object> rs = new Response<>();
 
-        try{
+        try {
             User user = authUserService.findByUsername(requestInfo.getUsername());
-            if(user==null){
+            if (user == null) {
                 throw new UserNotFoundException("user not found");
             }
 
             String role = user.getRole().getRole();
-            if(role.equals("admin")){
+            if (role.equals("ADMIN")) {
                 Optional<StoreAccount> storeAccount = storeAccountRepository.findById(updateStoreRq.getStoreId());
-                if(storeAccount.isEmpty()){
+                if (storeAccount.isEmpty()) {
                     throw new StoreAccountNotFoundException("store account not found");
                 }
-            }else{
+            } else {
                 throw new PrivilegeException("account not allowed to update");
             }
 

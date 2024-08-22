@@ -33,7 +33,7 @@ public class GatewayConfigController {
         Response<Object> rs = new Response<>();
         // load username
         String username = authUserService.findUsernameUsingJwt(httpServletRequest.getHeader("Authorization"));
-        if(username==null){
+        if (username == null) {
             rs.setError(HttpStatus.UNAUTHORIZED, "failed", "02", "Unauthorized Request");
         }
         RequestInfo requestInfo = CommonUtil.constructRequestInfo(

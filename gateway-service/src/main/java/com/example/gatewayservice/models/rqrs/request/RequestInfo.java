@@ -1,7 +1,6 @@
 package com.example.gatewayservice.models.rqrs.request;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.Builder;
 
 import java.util.Date;
 

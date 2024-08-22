@@ -16,7 +16,7 @@ public class CommonUtil {
 
     public static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
-    public static RequestInfo constructRequestInfo(String operationName, String username, Object request, Date requestAt, HttpServletRequest httpServletRequest){
+    public static RequestInfo constructRequestInfo(String operationName, String username, Object request, Date requestAt, HttpServletRequest httpServletRequest) {
         return new RequestInfo(operationName, username, request, requestAt, httpServletRequest);
     }
 

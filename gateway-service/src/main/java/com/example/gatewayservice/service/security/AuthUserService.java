@@ -11,7 +11,6 @@ import com.example.gatewayservice.repository.UserRepository;
 import com.example.gatewayservice.service.SystemPropertiesServices;
 import com.example.gatewayservice.service.redis.RedisServices;
 import com.example.gatewayservice.util.JwtUtil;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -53,7 +51,6 @@ public class AuthUserService {
             if (user.isEmpty()) {
                 throw new UserNotFoundException("user not found!");
             }
-            redisServices.setWithTTL("username_"+request.getUsername(), request.getUsername(), 1440, TimeUnit.MINUTES);
 
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
@@ -121,12 +118,12 @@ public class AuthUserService {
         return rs;
     }
 
-    public User findByUsername(String username){
+    public User findByUsername(String username) {
         Optional<User> user = userRepository.findDetailedByUsername(username);
         return user.orElse(null);
     }
 
-    public String findUsernameUsingJwt(String authorization){
+    public String findUsernameUsingJwt(String authorization) {
         String jwt = authorization.substring(7);
         String username = null;
 
