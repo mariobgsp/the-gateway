@@ -12,7 +12,7 @@ INSERT INTO public.system_properties ("key", value, vgroup) VALUES('TOKEN_ACCESS
 INSERT INTO public.system_properties ("key", value, vgroup) VALUES('TOKEN_ACCESS_INACTIVE_STATUS', 'INACTIVE', 'gateway-services');
 INSERT INTO public.system_properties ("key", value, vgroup) VALUES('API_EXPIRATION_TIME', '86400', 'gateway-services');
 INSERT INTO public.system_properties ("key", value, vgroup) VALUES('APP_NAME', 'gateway-services', 'gateway-services');
-INSERT INTO public.system_properties ("key", value, vgroup) VALUES('PERMITTED_API_LIST', 'user;gateway', 'gateway-services');
+INSERT INTO public.system_properties ("key", value, vgroup) VALUES('PERMITTED_API_LIST', '/user/;/gateway/', 'gateway-services');
 
 INSERT INTO public.api_gateway (api_name, api_identifier, api_host, api_path, method, header, require_request_body, require_request_param, param, created_at, updated_at) VALUES
 ('Gateway-Example-1','gateway-example-1', 'https://localhost:8080', '/examplePath1', 'POST', 'ax-request-id;Content-Type', true, false, 'phoneNumber;requestId', NOW(), NOW()),

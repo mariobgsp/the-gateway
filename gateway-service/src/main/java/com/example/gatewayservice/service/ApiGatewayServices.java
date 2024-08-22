@@ -2,14 +2,15 @@ package com.example.gatewayservice.service;
 
 import com.example.gatewayservice.exception.definition.*;
 import com.example.gatewayservice.exception.models.CommonException;
-import com.example.gatewayservice.models.entity.*;
-import com.example.gatewayservice.models.rqrs.Response;
+import com.example.gatewayservice.models.entity.ApiGateway;
+import com.example.gatewayservice.models.entity.StoreAccount;
+import com.example.gatewayservice.models.entity.TokenAccessLog;
+import com.example.gatewayservice.models.rqrs.response.Response;
 import com.example.gatewayservice.repository.ApiGatewayRepository;
 import com.example.gatewayservice.repository.StoreAccountRepository;
 import com.example.gatewayservice.repository.TokenAccessLogRepository;
 import com.example.gatewayservice.util.SecretKeyUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.antlr.v4.runtime.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -35,7 +36,9 @@ public class ApiGatewayServices {
 
     public Response<Object> processForwardApi(Map<String, Object> request
     ) {
-        Response<Object> rs = new Response<>();
+        log.info("process request : {} : {}", Thread.currentThread().getStackTrace()[1].getMethodName(), request);
+
+        Response<Object> rs = new Response<Object>();
         try {
             Map<String, Object> path = (Map<String, Object>) request.get("path");
             String pathName = (String) path.get("pathName");
@@ -53,11 +56,11 @@ public class ApiGatewayServices {
             ApiGateway apiGateway = ag.get();
 
             // check if status published
-            if(apiGateway.getStatus().equals("PUBLISHED")){
+            if (apiGateway.getStatus().equals("PUBLISHED")) {
                 String token = ((String) httpHeadrs.get("Authorization")).replace("Bearer ", "");
                 //check token log
                 Optional<TokenAccessLog> accessLog = tokenAccessLogRepository.findByTokenAndStatus(token, statusActive);
-                if(accessLog.isEmpty()){
+                if (accessLog.isEmpty()) {
                     throw new TokenInactiveException("inactive token access");
                 }
 
@@ -99,7 +102,7 @@ public class ApiGatewayServices {
                         requestBody);
 
                 rs.setSuccess(response.getBody());
-            }else{
+            } else {
                 throw new UnpublishedException("API unpublished");
             }
         } catch (Exception e) {
@@ -107,11 +110,13 @@ public class ApiGatewayServices {
             CommonException co = e instanceof CommonException ? (CommonException) e : new CommonException(e);
             rs.setError(co.getHttpStatus(), co.getHttpStatus().name(), co.getErrorCode(), co.getErrorMessage());
         }
+        log.info("done process request : {} : {}", Thread.currentThread().getStackTrace()[1].getMethodName(), rs);
         return rs;
     }
 
     public Response<Object> generateToken(String accessToken) {
-        Response<Object> rs = new Response<>();
+        log.info("process request : {} : {}", Thread.currentThread().getStackTrace()[1].getMethodName(), accessToken);
+        Response<Object> rs = new Response<Object>();
 
         try {
             // validate token
@@ -129,7 +134,7 @@ public class ApiGatewayServices {
             String status = systemPropertiesServices.getProps("TOKEN_ACCESS_ACTIVE_STATUS");
             int expiringTime = Integer.parseInt(systemPropertiesServices.getProps("API_ACCESS_TIME"));
 
-            Map<String, Object> result = new LinkedHashMap<>();
+            Map<String, Object> result = new LinkedHashMap<String, Object>();
             result.put("accessToken", key);
             result.put("expiringIn", expiringTime);
 
@@ -139,12 +144,14 @@ public class ApiGatewayServices {
             tokenLog.setStoreAccount(storeAccount.get());
 
             tokenAccessLogRepository.save(tokenLog);
+
+            rs.setSuccess(result);
         } catch (Exception e) {
-            log.error("error processForwardApi", e);
+            log.error("error generateToken", e);
             CommonException co = e instanceof CommonException ? (CommonException) e : new CommonException(e);
             rs.setError(co.getHttpStatus(), co.getHttpStatus().name(), co.getErrorCode(), co.getErrorMessage());
         }
-
+        log.info("done process request : {} : {}", Thread.currentThread().getStackTrace()[1].getMethodName(), rs);
         return rs;
     }
 

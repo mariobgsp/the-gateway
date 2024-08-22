@@ -38,14 +38,14 @@ public class SecretKeyUtil {
         System.out.println("Client Secret: " + generateClientSecretId());
     }
 
-    public static String generateClientId(){
+    public static String generateClientId() {
         SecureRandom secureRandom = new SecureRandom();
         byte[] secretBytes = new byte[SECRET_LENGTH_ID];
         secureRandom.nextBytes(secretBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(secretBytes);
     }
 
-    public static String generateClientSecretId(){
+    public static String generateClientSecretId() {
         SecureRandom secureRandom = new SecureRandom();
         byte[] secretBytes = new byte[SECRET_LENGTH_CLIENT];
         secureRandom.nextBytes(secretBytes);

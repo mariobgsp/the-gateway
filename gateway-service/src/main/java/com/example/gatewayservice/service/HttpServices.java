@@ -27,7 +27,7 @@ public class HttpServices {
         ResponseEntity<Object> response = restTemplate.exchange(
                 url,
                 httpMethod,
-                new HttpEntity<>(requestBody, httpHeaders)
+                new HttpEntity<Object>(requestBody, httpHeaders)
                 , Object.class);
         log.info("success process forwarding API!");
         log.info("result {}", response.getBody());

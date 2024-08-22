@@ -1,4 +1,4 @@
-package com.example.gatewayservice.models.rqrs;
+package com.example.gatewayservice.models.rqrs.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -72,7 +72,7 @@ public class Response<T> {
     public void setError(HttpStatus httpStatus, String status, String code, String message) {
 
         this.httpStatus = httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
-        this.status = status;
+        this.status = status != null ? status : "failed";
         this.code = code != null ? code : "99";
         this.message = message != null ? message : "UnknownError";
     }
@@ -80,7 +80,7 @@ public class Response<T> {
     public void setError(String message) {
 
         this.httpStatus = httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
-        this.status = status != null ? status : "unknownError";
+        this.status = status  = "unknownError";
         this.code = code != null ? code : "99";
         this.message = message != null ? message : "UnknownError";
     }

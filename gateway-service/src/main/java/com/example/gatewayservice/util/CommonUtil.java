@@ -1,10 +1,13 @@
 package com.example.gatewayservice.util;
 
+import com.example.gatewayservice.models.rqrs.request.RequestInfo;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +15,10 @@ import java.util.Map;
 public class CommonUtil {
 
     public static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+
+    public static RequestInfo constructRequestInfo(String operationName, String username, Object request, Date requestAt, HttpServletRequest httpServletRequest){
+        return new RequestInfo(operationName, username, request, requestAt, httpServletRequest);
+    }
 
     public static Map<String, Object> processRequest(String path, HttpHeaders httpHeaders, Object requestBody) {
 

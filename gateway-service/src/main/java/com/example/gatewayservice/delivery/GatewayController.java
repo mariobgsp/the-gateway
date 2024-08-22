@@ -1,6 +1,6 @@
 package com.example.gatewayservice.delivery;
 
-import com.example.gatewayservice.models.rqrs.Response;
+import com.example.gatewayservice.models.rqrs.response.Response;
 import com.example.gatewayservice.service.ApiGatewayServices;
 import com.example.gatewayservice.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ public class GatewayController {
 
         Map<String, Object> processedRq = CommonUtil.processRequest(path, httpHeaders, requestBody);
         Response<Object> rs = apiGatewayServices.processForwardApi(processedRq);
-        return new ResponseEntity<>(rs, rs.getHttpStatus());
+        return new ResponseEntity<>(rs.getData(), rs.getHttpStatus());
     }
 
     @RequestMapping(value = "/token", method = RequestMethod.POST)

@@ -1,7 +1,6 @@
 package com.example.gatewayservice.repository;
 
 import com.example.gatewayservice.models.entity.TokenAccessLog;
-import com.example.gatewayservice.models.entity.TokenLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

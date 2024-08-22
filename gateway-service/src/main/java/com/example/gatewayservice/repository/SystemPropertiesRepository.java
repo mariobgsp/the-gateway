@@ -12,6 +12,8 @@ public interface SystemPropertiesRepository extends JpaRepository<SystemProperti
 
     Optional<SystemProperties> findByKey(String key);
 
+    Optional<SystemProperties> findByKeyAndVgroup(String key, String vgroup);
+
     List<SystemProperties> findByVgroup(String vgroup);
 
 }

@@ -4,15 +4,16 @@ import com.example.gatewayservice.exception.definition.InvalidRequestException;
 import com.example.gatewayservice.exception.definition.UserNotFoundException;
 import com.example.gatewayservice.exception.models.CommonException;
 import com.example.gatewayservice.models.entity.User;
-import com.example.gatewayservice.models.rqrs.Response;
+import com.example.gatewayservice.models.rqrs.response.Response;
 import com.example.gatewayservice.models.user.UserLoginRq;
 import com.example.gatewayservice.models.user.UserLoginRs;
 import com.example.gatewayservice.repository.UserRepository;
 import com.example.gatewayservice.service.SystemPropertiesServices;
+import com.example.gatewayservice.service.redis.RedisServices;
 import com.example.gatewayservice.util.JwtUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,8 +22,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -40,16 +41,19 @@ public class AuthUserService {
     private SystemPropertiesServices propertiesServices;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private RedisServices redisServices;
 
     public Response<Object> authLogin(UserLoginRq request) {
         log.info("start authLogin {}", request);
-        Response<Object> rs = new Response<>();
+        Response<Object> rs = new Response<Object>();
 
         try {
             Optional<User> user = userRepository.findDetailedByUsername(request.getUsername());
             if (user.isEmpty()) {
                 throw new UserNotFoundException("user not found!");
             }
+            redisServices.setWithTTL("username_"+request.getUsername(), request.getUsername(), 1440, TimeUnit.MINUTES);
 
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
@@ -83,7 +87,7 @@ public class AuthUserService {
 
     public Response<Object> authLogout(String authHeader) {
         log.info("start authLogout {}", authHeader);
-        Response<Object> rs = new Response<>();
+        Response<Object> rs = new Response<Object>();
 
         try {
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -117,5 +121,22 @@ public class AuthUserService {
         return rs;
     }
 
+    public User findByUsername(String username){
+        Optional<User> user = userRepository.findDetailedByUsername(username);
+        return user.orElse(null);
+    }
+
+    public String findUsernameUsingJwt(String authorization){
+        String jwt = authorization.substring(7);
+        String username = null;
+
+        try {
+            username = jwtUtil.getUsernameFromToken(jwt);
+        } catch (Exception e) {
+            log.error("failed parse jwt token {}", e.getMessage());
+        }
+
+        return username;
+    }
 
 }

@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,14 +32,14 @@ public class GatewayServiceApplication {
     }
 
     @PostConstruct
-    public void initConfiguration(){
-        try{
+    public void initConfiguration() {
+        try {
             List<SystemProperties> list = systemPropertiesRepository.findByVgroup("gateway-services");
             String propsName = "gateway-services";
 
-            log.info("load redis configuration : {}", propsName );
-            Map<String,Object> spM = new HashMap<>();
-            for (SystemProperties sp : list){
+            log.info("load redis configuration : {}", propsName);
+            Map<String, Object> spM = new HashMap<String, Object>();
+            for (SystemProperties sp : list) {
                 spM.put(sp.getKey(), sp.getValue());
             }
 
@@ -50,10 +49,9 @@ public class GatewayServiceApplication {
             String appName = systemPropertiesServices.getProps("APP_NAME");
 
             log.info("success get properties - {}", appName);
-        } catch (Exception e){
+        } catch (Exception e) {
             log.info("failed load configuration {}", e.getMessage());
         }
-
     }
 
 }

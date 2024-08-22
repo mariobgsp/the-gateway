@@ -15,6 +15,7 @@ public class StoreAccount {
     private String storeName;
     private String clientId;
     private String secretKey;
+    private String status;
 
     public Long getId() {
         return id;
@@ -54,5 +55,13 @@ public class StoreAccount {
 
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

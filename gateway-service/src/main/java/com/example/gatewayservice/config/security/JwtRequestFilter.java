@@ -1,7 +1,8 @@
 package com.example.gatewayservice.config.security;
 
-import com.example.gatewayservice.models.rqrs.Response;
+import com.example.gatewayservice.models.rqrs.response.Response;
 import com.example.gatewayservice.service.SystemPropertiesServices;
+import com.example.gatewayservice.service.redis.RedisServices;
 import com.example.gatewayservice.service.security.TokenBlacklistService;
 import com.example.gatewayservice.util.CommonUtil;
 import com.example.gatewayservice.util.JwtUtil;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
@@ -36,6 +38,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private TokenBlacklistService tokenBlacklistService;
     @Autowired
     private SystemPropertiesServices systemPropertiesServices;
+    @Autowired
+    private RedisServices redisServices;
 
     private void writeJsonResponse(HttpServletResponse response, int status, String message) throws IOException {
         response.setStatus(status);
@@ -43,7 +47,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         response.setCharacterEncoding("UTF-8");
 
         Response<Object> rs = new Response<>();
-        rs.setError(HttpStatus.valueOf(status), HttpStatus.valueOf(status).name(), "98", "98:Unauthorized:" + message);
+        rs.setError(HttpStatus.valueOf(status), HttpStatus.valueOf(status).name(), "98", "Unauthorized:" + message);
 
         PrintWriter out = response.getWriter();
         out.print(CommonUtil.gson.toJson(rs));
@@ -94,7 +98,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         } else if (username == null) {
             // Authorization header is missing or doesn't start with "Bearer ", send unauthorized response
-            writeJsonResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Authorization header is missing or invalid");
+            writeJsonResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Authorization header is missing or invalid request");
             return;
         }
 
