@@ -7,6 +7,7 @@ import com.example.gatewayservice.models.entity.StoreAccount;
 import com.example.gatewayservice.models.entity.StoreApiAccess;
 import com.example.gatewayservice.models.entity.User;
 import com.example.gatewayservice.models.rqrs.custom.GatewayRs;
+import com.example.gatewayservice.models.rqrs.custom.StoreAccountRs;
 import com.example.gatewayservice.models.rqrs.request.*;
 import com.example.gatewayservice.models.rqrs.response.Response;
 import com.example.gatewayservice.repository.ApiGatewayRepository;
@@ -227,6 +228,28 @@ public class ApiConfigServices {
             rs.setError(co.getHttpStatus(), co.getHttpStatus().name(), co.getErrorCode(), co.getErrorMessage());
         }
         log.info("done process request : {} : {}", Thread.currentThread().getStackTrace()[1].getMethodName(), rs);
+        return rs;
+    }
+
+    public Response<Object> getStoreList(RequestInfo requestInfo){
+        Response<Object> rs = new Response<>();
+        try{
+            List<StoreAccount> storeAccounts = storeAccountRepository.findAll();
+
+            List<StoreAccountRs> list = new ArrayList<>();
+            for (StoreAccount s : storeAccounts){
+                StoreAccountRs sa = new StoreAccountRs();
+                sa.setStoreName(s.getStoreName());
+                sa.setStatus(s.getStatus());
+                list.add(sa);
+            }
+
+            rs.setSuccess(list);
+        } catch (Exception e) {
+            log.error("error getStoreList", e);
+            CommonException co = e instanceof CommonException ? (CommonException) e : new CommonException(e);
+            rs.setError(co.getHttpStatus(), co.getHttpStatus().name(), co.getErrorCode(), co.getErrorMessage());
+        }
         return rs;
     }
 

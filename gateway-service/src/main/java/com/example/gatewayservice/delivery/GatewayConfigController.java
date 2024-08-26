@@ -28,7 +28,7 @@ public class GatewayConfigController {
     @Autowired
     private AuthUserService authUserService;
 
-    @RequestMapping(value = "/getApiList", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/list", method = RequestMethod.GET)
     public ResponseEntity<?> getApiList(HttpServletRequest httpServletRequest) {
         Response<Object> rs = new Response<>();
         // load username
@@ -48,7 +48,7 @@ public class GatewayConfigController {
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
 
-    @RequestMapping(value = "/getDetailedApi", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/detail", method = RequestMethod.POST)
     public ResponseEntity<?> getDetailedApi(@RequestBody Map<String, Object> request, HttpServletRequest httpServletRequest) {
         Response<Object> rs = new Response<>();
         // load username
@@ -131,4 +131,22 @@ public class GatewayConfigController {
         rs = apiConfigServices.updateStore(requestInfo, rq);
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
+
+    @RequestMapping(value = "/store/list", method = RequestMethod.GET)
+    public ResponseEntity<?> getStoreList(HttpServletRequest httpServletRequest){
+        Response<Object> rs = new Response<>();
+        // load username
+        String username = authUserService.findUsernameUsingJwt(httpServletRequest.getHeader("Authorization"));
+        RequestInfo requestInfo = CommonUtil.constructRequestInfo(
+                "updateStore",
+                username,
+                null,
+                new Date(),
+                httpServletRequest
+        );
+
+        rs = apiConfigServices.getStoreList(requestInfo);
+        return new ResponseEntity<>(rs, rs.getHttpStatus());
+    }
+
 }

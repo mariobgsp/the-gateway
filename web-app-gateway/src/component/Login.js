@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import './../css/Login.css';
+import { useNavigate } from 'react-router-dom';
+import './../component/Login.css';
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [accessToken, setAccessToken] = useState('');
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,6 +30,7 @@ function Login() {
       setAccessToken(data.data.accessToken);
       // Store the token in local storage or handle it as needed
       localStorage.setItem('accessToken', data.data.accessToken);
+      navigate('/home');
     } else {
       setMessage(data.message);
     }
@@ -58,8 +61,6 @@ function Login() {
             login
           </button>
         </form>
-        {message && <p>{message}</p>}
-        {accessToken && <p>Access Token: {accessToken}</p>}
         <div className="signup-link">
           <p>
             create account? <a href="#">Sign Up</a>

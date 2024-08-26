@@ -1,0 +1,102 @@
+/* HomePage.css */
+.home-container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9f9f9;
+  }
+  
+  .home-box {
+    width: 80%;
+    max-width: 900px;
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .tab-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+  }
+  
+  .tab-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    background-color: #333;
+    color: white;
+    font-weight: bold;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+  
+  .tab-button.active {
+    background-color: black;
+  }
+  
+  .api-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .api-table th, .api-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .api-table th {
+    background-color: #333;
+    color: white;
+  }
+  
+  .api-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+  
+  .pagination-button {
+    padding: 5px 10px;
+    border: none;
+    background-color: #ddd;
+    margin-left: 5px;
+    cursor: pointer;
+  }
+  
+  .pagination-button.active {
+    background-color: black;
+    color: white;
+  }
+  
+  .add-api-button {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    margin-top: 20px;
+    background-color: black;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .error-message {
+    color: red;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  

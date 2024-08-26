@@ -1,13 +1,24 @@
-import logo from './logo.svg';
 import './App.css';
 
 import React from 'react';
-import Login from './component/Login';
+import { useRoutes } from 'react-router-dom';
+
+import Login from './component/Login.js';
+import HomePage from './component/Home.js';
+
+const AppRoutes = () => {
+  const routes = useRoutes([
+    { path: '/login', element: <Login /> },
+    { path: '/home', element: <HomePage /> },
+  ]);
+
+  return routes;
+};
 
 function App() {
   return (
-    <div className="App">
-      <Login />
+    <div>
+      <AppRoutes />
     </div>
   );
 }

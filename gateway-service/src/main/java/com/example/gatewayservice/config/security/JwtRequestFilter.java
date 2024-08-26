@@ -57,6 +57,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        // Don't apply filter to OPTIONS requests
+        if (request.getMethod().equals("OPTIONS")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         // Skip filter for permitted URLs
         List<String> permittedApiList = Arrays.asList(systemPropertiesServices.getProps("PERMITTED_API_LIST").split(";"));
         boolean isPermitted = permittedApiList.stream().anyMatch(request.getRequestURI()::startsWith);
