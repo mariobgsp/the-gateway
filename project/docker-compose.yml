@@ -3,7 +3,7 @@ version: "3.7"
 services:
   postgres:
     container_name: postgres
-    image: 'postgres:15-alpine3.17'
+    image: 'docker.io/library/postgres:15-alpine3.17'
     ports:
       - "5432:5432"
     restart: always
@@ -15,5 +15,31 @@ services:
       - POSTGRES_USER=microservices
       - POSTGRES_PASSWORD=password
     volumes:
-      - ./db-data/postgres/:/var/lib/postgresql/data/
-      - ./pg-init-scripts:/docker-entrypoint-initdb.d
+      - ./db-data/postgres/:/var/lib/postgresql/data/:z,U
+      - ./pg-init-scripts:/docker-entrypoint-initdb.d:z
+
+  gateway-service:
+    container_name: gateway-service
+    build:
+      context: ../gateway-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    restart: always
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/gateway
+      - SPRING_DATASOURCE_USERNAME=microservices
+      - SPRING_DATASOURCE_PASSWORD=password
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway-service
+    restart: always

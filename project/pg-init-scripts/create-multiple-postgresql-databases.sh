@@ -20,3 +20,9 @@ if [ -n "$POSTGRES_MULTIPLE_DATABASES" ]; then
 	done
 	echo "Multiple databases created"
 fi
+
+if [ -f "/docker-entrypoint-initdb.d/gateway.sql" ]; then
+	echo "Initializing database 'gateway' with gateway.sql..."
+	psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "gateway" -f "/docker-entrypoint-initdb.d/gateway.sql"
+	echo "Database 'gateway' initialized successfully"
+fi
