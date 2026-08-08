@@ -1,10 +1,9 @@
 package com.example.gatewayservice.controller;
 
 import com.example.gatewayservice.models.rqrs.Response;
+import com.example.gatewayservice.models.rqrs.SaveApiRequest;
 import com.example.gatewayservice.service.ApiGatewayServices;
 import com.example.gatewayservice.util.CommonUtil;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -12,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -46,7 +44,15 @@ public class GatewayController {
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
 
+    @RequestMapping(value = "/saveApi", method = RequestMethod.POST)
+    public ResponseEntity<?> saveApi(@RequestBody SaveApiRequest request){
+        Response<Object> rs = apiGatewayServices.saveApi(request);
+        return new ResponseEntity<>(rs, rs.getHttpStatus());
+    }
 
-
-
+    @RequestMapping(value = "/deleteApi", method = RequestMethod.POST)
+    public ResponseEntity<?> deleteApi(@RequestParam("api_identifier") String apiIdentifier){
+        Response<Object> rs = apiGatewayServices.deleteApi(apiIdentifier);
+        return new ResponseEntity<>(rs, rs.getHttpStatus());
+    }
 }

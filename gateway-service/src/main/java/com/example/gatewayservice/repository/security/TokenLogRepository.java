@@ -9,6 +9,6 @@ import java.util.Optional;
 @Repository
 public interface TokenLogRepository extends JpaRepository<TokenLog, Long> {
 
-    TokenLog findByToken(String token);
+    Optional<TokenLog> findFirstByTokenOrderByIdDesc(String token);
 
 }

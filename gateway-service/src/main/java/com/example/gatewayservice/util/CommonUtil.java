@@ -1,9 +1,12 @@
 package com.example.gatewayservice.util;
 
+import com.example.gatewayservice.exception.models.CommonException;
+import com.example.gatewayservice.models.rqrs.Response;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +15,17 @@ import java.util.Map;
 public class CommonUtil {
 
     public static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+
+    public static void applyError(Response<Object> rs, Exception e) {
+        if (e instanceof CommonException ce) {
+            rs.setError(ce.getHttpStatus() != null ? ce.getHttpStatus() : HttpStatus.INTERNAL_SERVER_ERROR,
+                    ce.getHttpStatus() != null ? ce.getHttpStatus().name() : HttpStatus.INTERNAL_SERVER_ERROR.name(),
+                    ce.getErrorCode(), ce.getErrorMessage());
+        } else {
+            rs.setError(HttpStatus.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.name(), "99",
+                    e.getMessage() != null ? e.getMessage() : "UnknownError");
+        }
+    }
 
     public static Map<String, Object> processRequest(String path, HttpHeaders httpHeaders, Object requestBody){
 

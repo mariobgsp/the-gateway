@@ -2,7 +2,9 @@ package com.example.gatewayservice.models.entity;
 
 
 import jakarta.persistence.*;
+import lombok.Data;
 
+@Data
 @Entity
 @Table(name = "store_account", schema = "public")
 public class StoreAccount {

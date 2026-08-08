@@ -1,14 +1,18 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const BACKEND_URL = 'http://localhost:8080';
+const FRONTEND_URL = 'http://localhost:3000';
+
 export default defineConfig({
   testDir: './tests/e2e',
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: 'html',
+  timeout: 60000,
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: FRONTEND_URL,
     trace: 'on-first-retry',
   },
   projects: [
@@ -17,9 +21,18 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command: `export JAVA_HOME="\${JAVA_HOME:-\$HOME/.local/jdks/jdk17}" && cd ../gateway-service && ./mvnw -q spring-boot:run -Dspring-boot.run.profiles=local`,
+      url: `${BACKEND_URL}/api/gateway/getApiList`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 300000,
+    },
+    {
+      command: `BACKEND_API_URL=${BACKEND_URL} COOKIE_SECURE=false npm run build && BACKEND_API_URL=${BACKEND_URL} COOKIE_SECURE=false npm run start -- -p 3000`,
+      url: FRONTEND_URL,
+      reuseExistingServer: !process.env.CI,
+      timeout: 300000,
+    },
+  ],
 });
