@@ -1,11 +1,13 @@
 package com.example.gatewayservice.service.security;
 
 import com.example.gatewayservice.models.entity.TokenLog;
-import com.example.gatewayservice.models.entity.User;
 import com.example.gatewayservice.repository.security.TokenLogRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -18,26 +20,23 @@ public class TokenBlacklistService {
         TokenLog tokenLog = new TokenLog();
         tokenLog.setToken(token);
         tokenLog.setStatus("ENABLED");
+        tokenLog.setCreatedAt(LocalDateTime.now());
+        tokenLog.setUpdatedAt(LocalDateTime.now());
         tokenLogRepository.save(tokenLog);
     }
 
     public Boolean blacklistToken(String token) {
-        boolean blacklisted = false;
-        TokenLog tokenLog = tokenLogRepository.findByToken(token);
-        if (tokenLog != null) {
-            tokenLog.setStatus("DISABLED");
-            tokenLogRepository.save(tokenLog);
-        }
-        blacklisted = true;
-        return blacklisted;
+        Optional<TokenLog> tokenLog = tokenLogRepository.findFirstByTokenOrderByIdDesc(token);
+        tokenLog.ifPresent(log -> {
+            log.setStatus("DISABLED");
+            log.setUpdatedAt(LocalDateTime.now());
+            tokenLogRepository.save(log);
+        });
+        return true;
     }
 
     public boolean isTokenBlacklisted(String token) {
-        TokenLog tokenLog = tokenLogRepository.findByToken(token);
-        if(tokenLog==null){
-            return true;
-        }
-
-        return tokenLog.getStatus().equals("DISABLED");
+        Optional<TokenLog> tokenLog = tokenLogRepository.findFirstByTokenOrderByIdDesc(token);
+        return tokenLog.isEmpty() || tokenLog.get().getStatus().equals("DISABLED");
     }
 }

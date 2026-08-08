@@ -16,9 +16,9 @@ CREATE TABLE public."user" (
 --INSERT INTO public."user" (username, password, email, user_role_id, user_session_status, user_last_login, user_last_change_password, created_at, updated_at) VALUES ('jane_smith', 'securepassword', 'jane.smith@example.com', 2, 'active', '2024-05-22 10:30:00', '2024-05-22 10:30:00', '2024-05-22 10:30:00', '2024-05-22 10:30:00');
 --INSERT INTO public."user" (username, password, email, user_role_id, user_session_status, user_last_login, user_last_change_password, created_at, updated_at) VALUES ('bob_johnson', 'p@ssw0rd', 'bob.johnson@example.com', 1, 'active', '2024-05-23 12:45:00', NULL, '2024-05-23 12:45:00', '2024-05-23 12:45:00');
 
-INSERT INTO public."user" (id, username, "password", email, user_role_id, user_session_status, user_last_login, user_last_change_password, created_at, updated_at) VALUES(2, 'jane_smith', '$2a$10$AnSG7YgfV.xXG18TReFdx.4g.7aoDgn/YZYX1x4nIoagYpO/ctYyq', 'jane.smith@example.com', 2, 'active', '2024-05-22 10:30:00.000', '2024-05-22 10:30:00.000', '2024-05-22 10:30:00.000', '2024-05-22 10:30:00.000');
-INSERT INTO public."user" (id, username, "password", email, user_role_id, user_session_status, user_last_login, user_last_change_password, created_at, updated_at) VALUES(3, 'bob_johnson', '$2a$10$Fyzx9YTta6v/hUIE2Ze4jOYR4tNbLW/Ea6YnYgvnZ38y4KXP/qIAe', 'bob.johnson@example.com', 1, 'active', '2024-05-23 12:45:00.000', NULL, '2024-05-23 12:45:00.000', '2024-05-23 12:45:00.000');
-INSERT INTO public."user" (id, username, "password", email, user_role_id, user_session_status, user_last_login, user_last_change_password, created_at, updated_at) VALUES(1, 'ario_test', '$2a$10$db.qhjUpDeOgc249ziI2oepgmTMHKrT6YYv276Lh4mN1U7zvwcija', 'ario.doe@example.com', 1, 'ACTIVE', '2024-07-17 16:14:01.516', '2024-05-21 08:00:00.000', '2024-05-21 08:00:00.000', '2024-07-17 16:14:01.598');
+INSERT INTO public."user" (id, username, "password", email, user_role_id, user_session_status, user_last_login, user_last_change_password, created_at, updated_at) VALUES(2, 'jane_smith', '$2a$10$s8CVccrkN0d/eryxRHMz2.2m.YBmYLzRBPedMY34b9l6xyL8I8ru6', 'jane.smith@example.com', 2, 'active', '2024-05-22 10:30:00.000', '2024-05-22 10:30:00.000', '2024-05-22 10:30:00.000', '2024-05-22 10:30:00.000');
+INSERT INTO public."user" (id, username, "password", email, user_role_id, user_session_status, user_last_login, user_last_change_password, created_at, updated_at) VALUES(3, 'bob_johnson', '$2a$10$s8CVccrkN0d/eryxRHMz2.2m.YBmYLzRBPedMY34b9l6xyL8I8ru6', 'bob.johnson@example.com', 1, 'active', '2024-05-23 12:45:00.000', NULL, '2024-05-23 12:45:00.000', '2024-05-23 12:45:00.000');
+INSERT INTO public."user" (id, username, "password", email, user_role_id, user_session_status, user_last_login, user_last_change_password, created_at, updated_at) VALUES(1, 'ario_test', '$2a$10$s8CVccrkN0d/eryxRHMz2.2m.YBmYLzRBPedMY34b9l6xyL8I8ru6', 'ario.doe@example.com', 1, 'ACTIVE', '2024-07-17 16:14:01.516', '2024-05-21 08:00:00.000', '2024-05-21 08:00:00.000', '2024-07-17 16:14:01.598');
 
 CREATE TABLE public."role" (
     id SERIAL PRIMARY KEY,
@@ -90,7 +90,7 @@ drop table if exists public.api_gateway cascade;
 CREATE TABLE public.api_gateway (
     id SERIAL PRIMARY KEY,
     api_name varchar(255), -- Example API name
-    api_identifier varchar(255),
+    api_identifier varchar(255) UNIQUE,
     api_host varchar(255), -- https://localhost:8080
     api_path varchar(255), -- /examplePath1
     method varchar(20), --PUT, POST, GET, delete etc
@@ -98,13 +98,20 @@ CREATE TABLE public.api_gateway (
     require_request_body boolean, -- yes or no
     require_request_param boolean, -- yes or no
     param varchar(255), -- param: phoneNumber;requestId; etch it will be splitted and inputed accordingly
+    status varchar(255),
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );
 
-INSERT INTO public.api_gateway (api_name, api_identifier, api_host, api_path, method, header, require_request_body, require_request_param, param, created_at, updated_at) VALUES 
-('Gateway-Example-1','gateway-example-1', 'https://localhost:8080', '/examplePath1', 'POST', 'ax-request-id;Content-Type', true, false, 'phoneNumber;requestId', NOW(), NOW()), 
-('Gateway-Example-1','gateway-example-1', 'https://localhost:8081', '/examplePath2', 'GET', 'x-auth-token;Content-Type', false, true, 'userId;sessionId', NOW(), NOW()),
-('Gateway-catApi','gateway-catapi', 'https://api.thecatapi.com', '/v1/images/search', 'GET', 'x-api-key;Content-Type', false, false, null, NOW(), NOW());
+INSERT INTO public.api_gateway (api_name, api_identifier, api_host, api_path, method, header, require_request_body, require_request_param, param, status, created_at, updated_at) VALUES 
+('Gateway-Example-1','gateway-example-1', 'https://api.thecatapi.com', '/v1/images/search', 'GET', 'x-api-key;Content-Type', false, false, null, 'created', NOW(), NOW()), 
+('Gateway-Example-2','gateway-example-2', 'https://api.thecatapi.com', '/v1/breeds', 'GET', 'Content-Type', false, false, null, 'published', NOW(), NOW()),
+('Gateway-catApi','gateway-catapi', 'https://api.thecatapi.com', '/v1/images/search', 'GET', 'x-api-key;Content-Type', false, false, null, 'created', NOW(), NOW());
+
+INSERT INTO public.store_account (store_name, "secretKey", "clientId") VALUES
+('Store-Example-Satu', 'gw_secret_placeholder_1', 'client_store1'),
+('Store-Example-Dua', 'gw_secret_placeholder_2', 'client_store2');
+
+INSERT INTO public.user_store_r (user_id, store_id) VALUES (1, 1), (1, 2);
 
 --select * from public.gateway

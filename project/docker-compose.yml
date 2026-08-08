@@ -43,3 +43,7 @@ services:
     depends_on:
       - gateway-service
     restart: always
+    environment:
+      - BACKEND_API_URL=http://gateway-service:8080
+      # set COOKIE_SECURE=true when serving over HTTPS
+      - COOKIE_SECURE=false

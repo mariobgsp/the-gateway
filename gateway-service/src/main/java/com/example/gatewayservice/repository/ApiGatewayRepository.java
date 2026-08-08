@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface ApiGatewayRepository extends JpaRepository<ApiGateway, Long> {
 
     Optional<ApiGateway> findByApiIdentifier(String path);
+
+    void deleteByApiIdentifier(String path);
 }

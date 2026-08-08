@@ -4,13 +4,10 @@ import com.example.gatewayservice.models.rqrs.Response;
 import com.example.gatewayservice.service.security.TokenBlacklistService;
 import com.example.gatewayservice.util.CommonUtil;
 import com.example.gatewayservice.util.JwtUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -44,6 +41,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         PrintWriter out = response.getWriter();
         out.print(CommonUtil.gson.toJson(rs));
         out.flush();
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return "/gateway/user/login".equals(request.getRequestURI());
     }
 
     @Override
