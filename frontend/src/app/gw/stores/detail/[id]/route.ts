@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { callBackend, envelopeError } from "@/lib/backend";
-import { getSessionToken } from "@/lib/session";
+import { bffProxy } from "@/lib/bffGateway";
 
 export const runtime = "nodejs";
 
@@ -9,28 +8,18 @@ interface RouteContext {
 }
 
 export async function GET(_request: Request, context: RouteContext) {
-  const token = await getSessionToken();
-  if (!token) {
-    return NextResponse.json({ status: "error", code: "98", message: "unauthorized" }, { status: 401 });
-  }
-
   const { id } = await context.params;
   const storeId = Number.parseInt(id, 10);
   if (!Number.isInteger(storeId) || storeId <= 0) {
-    return NextResponse.json({ status: "error", code: "04", message: "invalid store id" }, { status: 400 });
-  }
-
-  const { httpStatus, envelope } = await callBackend("/api/store/getDetail", {
-    method: "POST",
-    token,
-    params: { store_id: String(storeId) },
-  });
-
-  if (!envelope || envelope.code !== "00") {
     return NextResponse.json(
-      envelope ?? { status: "error", code: "99", message: envelopeError(envelope, httpStatus) },
-      { status: httpStatus >= 400 ? httpStatus : 500 }
+      { status: "error", code: "04", message: "invalid store id" },
+      { status: 400 },
     );
   }
-  return NextResponse.json(envelope, { status: 200 });
+
+  return bffProxy({
+    backendPath: "/api/store/getDetail",
+    method: "POST",
+    params: { store_id: String(storeId) },
+  });
 }

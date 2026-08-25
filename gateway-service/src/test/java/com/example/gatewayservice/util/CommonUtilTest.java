@@ -6,6 +6,9 @@ import com.example.gatewayservice.models.rqrs.Response;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
+import com.example.gatewayservice.models.rqrs.ForwardRequest;
+import org.springframework.http.HttpHeaders;
+
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -62,5 +65,39 @@ class CommonUtilTest {
 
         assertEquals("99", rs.getCode());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, rs.getHttpStatus());
+    }
+
+    @Test
+    void toForwardRequestTolerantDecode() {
+        ForwardRequest fr = CommonUtil.toForwardRequest("gateway-catapi?limit=5&foo", new HttpHeaders(), null);
+        assertEquals("gateway-catapi", fr.getPathName());
+        assertEquals("5", fr.getQueryParams().get("limit"));
+        assertEquals("", fr.getQueryParams().get("foo"));
+    }
+
+    @Test
+    void toForwardRequestDecodesEncoded() {
+        // container (Tomcat) already decoded %20->space before @PathVariable, so input is "a b=c+d" not "a%20b=c%2Bd"
+        ForwardRequest fr = CommonUtil.toForwardRequest("gateway-catapi?a b=c+d", null, null);
+        assertEquals("c+d", fr.getQueryParams().get("a b"));
+    }
+
+    @Test
+    void toForwardRequestDuplicateKeyKeepLast() {
+        ForwardRequest fr = CommonUtil.toForwardRequest("gateway-catapi?a=1&a=2", null, null);
+        assertEquals("2", fr.getQueryParams().get("a"));
+    }
+
+    @Test
+    void toForwardRequestTrailingPercent() {
+        ForwardRequest fr = CommonUtil.toForwardRequest("gateway-catapi?a=foo%", null, null);
+        assertEquals("foo%", fr.getQueryParams().get("a"));
+    }
+
+    @Test
+    void toForwardRequestNoQuery() {
+        ForwardRequest fr = CommonUtil.toForwardRequest("gateway-catapi", null, "body");
+        assertTrue(fr.getQueryParams().isEmpty());
+        assertEquals("body", fr.getBody());
     }
 }
