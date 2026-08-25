@@ -3,6 +3,7 @@ package com.example.gatewayservice.service;
 import com.example.gatewayservice.exception.definition.ApiGatewayNotFoundException;
 import com.example.gatewayservice.exception.definition.InvalidRequestException;
 import com.example.gatewayservice.models.entity.ApiGateway;
+import com.example.gatewayservice.models.rqrs.ForwardRequest;
 import com.example.gatewayservice.models.rqrs.Response;
 import com.example.gatewayservice.models.rqrs.SaveApiRequest;
 import com.example.gatewayservice.models.rqrs.custom.GatewayRs;
@@ -10,7 +11,9 @@ import com.example.gatewayservice.repository.ApiGatewayRepository;
 import com.example.gatewayservice.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -18,7 +21,12 @@ import org.springframework.util.StringUtils;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -31,73 +39,97 @@ public class ApiGatewayServices {
     @Autowired
     private HttpServices httpServices;
 
-    public Response<Object> processForwardApi(Map<String, Object> request
-    ){
+    /** Deep Module: GatewayForward — typed interface. */
+    public Response<Object> processForwardApi(ForwardRequest request) {
         Response<Object> rs = new Response<>();
-        try{
-            Map path = (Map) request.get("path");
-            String pathName = (String) path.get("pathName");
-            Map<String, Object> httpHeadrs = (Map<String, Object>) request.get("httpHeaders");
-            Map<String, Object> requestParam = (Map<String, Object>) path.get("requestParam");
-            Object requestBody = (Object) request.get("requestBody");
-
-            Optional<ApiGateway> ag = apiGatewayRepository.findByApiIdentifier(pathName);
-            if(ag.isEmpty()){
-                throw new ApiGatewayNotFoundException("API Gateway Configuration Not Found");
-            }
-            ApiGateway apiGateway = ag.get();
-
-            // construct Url
-            StringBuilder url = new StringBuilder(apiGateway.getApiHost() + apiGateway.getApiPath());
-
-            // construct header
-            HttpHeaders httpHeaders = new HttpHeaders();
-            List<String> httpHeadersConfig = splitConfig(apiGateway.getHeader());
-            if (httpHeadrs != null) {
-                for (Map.Entry<String, Object> entry : httpHeadrs.entrySet()) {
-                    if (httpHeadersConfig.contains(entry.getKey())) {
-                        httpHeaders.put(entry.getKey(), Collections.singletonList(entry.getValue().toString()));
-                    }
-                }
-            }
-
-            // check by configuration
-            if(apiGateway.getRequireRequestParam() != null && apiGateway.getRequireRequestParam()){
-                if (requestParam == null || requestParam.isEmpty()) {
-                    throw new InvalidRequestException("Bad request: emptyRequestParam");
-                }
-                StringBuilder query = new StringBuilder();
-                List<String> paramConfig = splitConfig(apiGateway.getParam());
-                for (Map.Entry<String, Object> entry : requestParam.entrySet()) {
-                    if (paramConfig.contains(entry.getKey())) {
-                        if (query.length() > 0) query.append("&");
-                        query.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8))
-                                .append("=")
-                                .append(URLEncoder.encode(String.valueOf(entry.getValue()), StandardCharsets.UTF_8));
-                    }
-                }
-                if (query.length() > 0) {
-                    url.append(url.toString().contains("?") ? "&" : "?");
-                    url.append(query);
-                }
-            }
-
-            if(apiGateway.getRequireRequestBody() != null && apiGateway.getRequireRequestBody() && requestBody == null){
-                throw new InvalidRequestException("Bad request: emptyRequestBody");
-            }
-
-            ResponseEntity<Object> response = httpServices.invokeUrl(
-                    url.toString(),
-                    HttpMethod.valueOf(apiGateway.getMethod()),
-                    httpHeaders,
-                    requestBody);
-
+        try {
+            ApiGateway apiGateway = loadApiGateway(request.getPathName());
+            String url = buildForwardUrl(apiGateway, request.getQueryParams());
+            HttpHeaders headers = filterHeaders(apiGateway, request.getHeaders());
+            requireBodyIfNeeded(apiGateway, request.getBody());
+            ResponseEntity<Object> response = httpServices.invokeUrl(url, HttpMethod.valueOf(apiGateway.getMethod()), headers, request.getBody());
             rs.setSuccess(response.getBody());
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("error processForwardApi", e);
             CommonUtil.applyError(rs, e);
         }
         return rs;
+    }
+
+    private ApiGateway loadApiGateway(String pathName) throws ApiGatewayNotFoundException {
+        return apiGatewayRepository.findByApiIdentifier(pathName)
+                .orElseThrow(() -> new ApiGatewayNotFoundException("API Gateway Configuration Not Found"));
+    }
+
+    private HttpHeaders filterHeaders(ApiGateway apiGateway, HttpHeaders incoming) {
+        HttpHeaders out = new HttpHeaders();
+        List<String> allowed = CommonUtil.splitConfig(apiGateway.getHeader());
+        if (incoming == null || incoming.isEmpty()) return out;
+        for (Map.Entry<String, List<String>> e : incoming.entrySet()) {
+            boolean allowedMatch = allowed.stream().anyMatch(a -> a.equalsIgnoreCase(e.getKey()));
+            if (allowedMatch) {
+                for (String v : e.getValue()) out.add(e.getKey(), v);
+            }
+        }
+        return out;
+    }
+
+    private String buildForwardUrl(ApiGateway apiGateway, Map<String, String> requestParam) throws InvalidRequestException {
+        StringBuilder url = new StringBuilder(apiGateway.getApiHost() + apiGateway.getApiPath());
+        if (apiGateway.getRequireRequestParam() == null || !apiGateway.getRequireRequestParam()) return url.toString();
+        if (requestParam == null || requestParam.isEmpty()) throw new InvalidRequestException("Bad request: emptyRequestParam");
+        StringBuilder query = new StringBuilder();
+        List<String> allowed = CommonUtil.splitConfig(apiGateway.getParam());
+        for (Map.Entry<String, String> e : requestParam.entrySet()) {
+            if (!allowed.contains(e.getKey())) continue;
+            if (query.length() > 0) query.append("&");
+            query.append(URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8))
+                 .append("=").append(URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8));
+        }
+        if (query.length() > 0) url.append(url.toString().contains("?") ? "&" : "?").append(query);
+        return url.toString();
+    }
+
+    private void requireBodyIfNeeded(ApiGateway apiGateway, Object body) throws InvalidRequestException {
+        if (apiGateway.getRequireRequestBody() != null && apiGateway.getRequireRequestBody() && body == null) {
+            throw new InvalidRequestException("Bad request: emptyRequestBody");
+        }
+    }
+
+    /** Retained for backward compat — delegates to typed ForwardRequest seam. */
+    @Deprecated
+    @SuppressWarnings("unchecked")
+    public Response<Object> processForwardApi(Map<String, Object> request) {
+        try {
+            Map<?, ?> path = (Map<?, ?>) request.get("path");
+            String pathName = path != null && path.get("pathName") != null ? String.valueOf(path.get("pathName")) : "";
+            Map<String, Object> qp = path != null ? (Map<String, Object>) path.get("requestParam") : null;
+            Map<String, String> typedParams = new HashMap<>();
+            if (qp != null) {
+                for (Map.Entry<String, Object> e : qp.entrySet()) {
+                    typedParams.put(String.valueOf(e.getKey()), String.valueOf(e.getValue()));
+                }
+            }
+            Object headersObj = request.get("httpHeaders");
+            HttpHeaders headers;
+            if (headersObj instanceof HttpHeaders hh) {
+                headers = hh;
+            } else {
+                headers = new HttpHeaders();
+                if (headersObj instanceof Map<?, ?> m) {
+                    for (Map.Entry<?, ?> e : m.entrySet()) {
+                        headers.set(String.valueOf(e.getKey()), String.valueOf(e.getValue()));
+                    }
+                }
+            }
+            Object body = request.get("requestBody");
+            ForwardRequest fr = new ForwardRequest(pathName, typedParams, headers, body);
+            return processForwardApi(fr);
+        } catch (Exception e) {
+            Response<Object> rs = new Response<>();
+            CommonUtil.applyError(rs, e);
+            return rs;
+        }
     }
 
     public Response<Object> getListGateways(){
@@ -237,11 +269,4 @@ public class ApiGatewayServices {
         }
     }
 
-    private List<String> splitConfig(String config) {
-        if (config == null || config.isBlank()) return Collections.emptyList();
-        return Arrays.stream(config.split(";"))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .toList();
-    }
 }

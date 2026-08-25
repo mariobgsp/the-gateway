@@ -1,7 +1,6 @@
 import type { ApiEnvelope } from "@/types";
 
-const BACKEND_API_URL =
-  process.env.BACKEND_API_URL ?? "http://localhost:8080";
+const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
 export interface BackendResponse {
   httpStatus: number;
@@ -9,7 +8,7 @@ export interface BackendResponse {
 }
 
 interface CallOptions {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   token?: string | null;
   body?: unknown;
   params?: Record<string, string>;
@@ -19,9 +18,16 @@ interface CallOptions {
 
 export async function callBackend(
   path: string,
-  options: CallOptions = {}
+  options: CallOptions = {},
 ): Promise<BackendResponse> {
-  const { method = "GET", token, body, params, headers: extraHeaders, timeoutMs = 20000 } = options;
+  const {
+    method = "GET",
+    token,
+    body,
+    params,
+    headers: extraHeaders,
+    timeoutMs = 20000,
+  } = options;
 
   const url = new URL(path, BACKEND_API_URL);
   if (params) {
@@ -65,7 +71,10 @@ export async function callBackend(
   }
 }
 
-export function envelopeError(envelope: ApiEnvelope | null, httpStatus: number): string {
+export function envelopeError(
+  envelope: ApiEnvelope | null,
+  httpStatus: number,
+): string {
   if (envelope?.message) return envelope.message;
   if (envelope?.errorMessage) return envelope.errorMessage;
   return `Request failed with status ${httpStatus}`;

@@ -1,5 +1,6 @@
 package com.example.gatewayservice.controller;
 
+import com.example.gatewayservice.models.rqrs.ForwardRequest;
 import com.example.gatewayservice.models.rqrs.Response;
 import com.example.gatewayservice.models.rqrs.SaveApiRequest;
 import com.example.gatewayservice.service.ApiGatewayServices;
@@ -7,11 +8,8 @@ import com.example.gatewayservice.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -27,8 +25,8 @@ public class GatewayController {
             @PathVariable String path, // path should be encoded to get entire request as example `?` as `%3F`
             @RequestBody(required = false) Object requestBody){
 
-        Map<String, Object> processedRq = CommonUtil.processRequest(path, httpHeaders, requestBody);
-        Response<Object> rs = apiGatewayServices.processForwardApi(processedRq);
+        ForwardRequest req = CommonUtil.toForwardRequest(path, httpHeaders, requestBody);
+        Response<Object> rs = apiGatewayServices.processForwardApi(req);
         return new ResponseEntity<>(rs, rs.getHttpStatus());
     }
 

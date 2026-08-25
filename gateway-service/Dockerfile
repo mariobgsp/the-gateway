@@ -9,4 +9,5 @@ FROM docker.io/library/eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# ponytail: respect JAVA_OPTS for heap tuning without image rebuild
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
