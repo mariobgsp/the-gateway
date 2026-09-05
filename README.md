@@ -1,5 +1,7 @@
 # The Gateway
 
+[![CI](https://github.com/mariobgsp/the-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/mariobgsp/the-gateway/actions/workflows/ci.yml)
+
 Gateway services example — **Next.js 15 (App Router) BFF** + **Go backend (`gateway-go`, chi + pgx)** + **PostgreSQL**. Deep modules via `BffGateway` + `GatewayForward(ForwardRequest)`.
 
 ## Design Reference
