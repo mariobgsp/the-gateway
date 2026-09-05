@@ -1,6 +1,6 @@
 # CLAUDE.md — The Gateway
 
-> **Project:** API Gateway management UI — Next.js 15 BFF + Spring Boot 3.1 (Java 17)
+> **Project:** API Gateway management UI — Next.js 15 BFF + Go backend (big-bang port of Spring Boot 3.1; `gateway-service/` retained until cutover)
 > **Workflow:** `team-pr` (PR-based, protect `main`), Conventional Commits, GitHub Actions
 > **Domain:** BffGateway, GatewayForward, ForwardRequest, UpstreamPort
 
@@ -11,17 +11,17 @@
 | lint | `cd frontend && npm run lint` |
 | typecheck | `cd frontend && npm run typecheck` (`tsc --noEmit`) |
 | test (frontend) | `cd frontend && npm test` (Vitest 15 tests) |
-| test (backend) | `cd gateway-service && ./mvnw test` (37 tests) |
+| test (backend) | `cd gateway-go && go test ./...` |
 | build (frontend) | `cd frontend && npm run build` |
-| build (backend) | `cd gateway-service && ./mvnw package` |
+| build (backend) | `cd gateway-go && go build ./...` |
 | e2e | `cd frontend && npm run test:e2e` (Playwright, auto-starts H2 + dev servers) |
 | import-boundaries | `test -f specs/import-boundaries.json && bash scripts/check-import-boundaries.sh` |
 
 ## Architecture
 
 - **BFF Gateway** (`frontend/src/lib/bffGateway.ts` deep Module): hides `getSessionToken→401`, `callBackend`+20s Abort, `envelopeError` mapping; adapters in `frontend/src/app/gw/**`
-- **GatewayForward** (`models/rqrs/ForwardRequest.java` value object): typed `ForwardRequest(pathName, queryParams, headers, body)` replaces `Map<String,Object>` seam; `CommonUtil.toForwardRequest` tolerant decode (`?foo→""`), canonical `URLEncoder` only in `ApiGatewayServices`
-- **UpstreamPort**: internal to `GatewayForward` (RestTemplate prod / InMemory test), not exposed until 2 adapters justified
+- **GatewayForward** (`gateway-go/internal/service/forward.go`): typed `ForwardRequest{PathName, QueryParams, Headers, Body}`; `ParseForwardPath` tolerant decode (`?foo→""`, last-wins, no double-decode), canonical `JavaURLEncode` only in `BuildForwardURL`
+- **UpstreamPort**: internal to `GatewayForward` (`net/http` client, 5s dial / 30s timeout), not exposed until 2 adapters justified
 
 ## Conventions
 
@@ -46,4 +46,4 @@
 
 - `team-pr`: branch from `main` → PR → review → merge; protected `main`
 - CI: GitHub Actions (to be wired via `wire-ci`)
-- Backend lint: `checkstyle` (to be added)
+- Backend lint: `cd gateway-go && go vet ./...`
