@@ -23,8 +23,11 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `export JAVA_HOME="\${JAVA_HOME:-\$HOME/.local/jdks/jdk17}" && cd ../gateway-service && ./mvnw -q spring-boot:run -Dspring-boot.run.profiles=local`,
-      url: `${BACKEND_URL}/api/gateway/getApiList`,
+      // Go backend. Requires Postgres with the gateway db seeded once:
+      //   docker compose -f ../project/docker-compose.yml up -d postgres
+      //   psql $DATABASE_URL -f ../project/pg-init-scripts/gateway.sql
+      command: `cd ../gateway-go && DATABASE_URL="\${DATABASE_URL:-postgres://microservices:password@localhost:5432/gateway?sslmode=disable}" PORT=8080 go run ./cmd/server`,
+      url: `${BACKEND_URL}/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 300000,
     },
