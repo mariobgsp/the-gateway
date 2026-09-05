@@ -17,7 +17,10 @@ export function Navbar({ username }: { username?: string }) {
 
   return (
     <nav className="navbar" style={{ padding: "1.5rem 0", maxWidth: "100%" }}>
-      <span className="heading-title" style={{ margin: 0, fontSize: "1.75rem" }}>
+      <span
+        className="heading-title"
+        style={{ margin: 0, fontSize: "1.75rem" }}
+      >
         The Gateway
       </span>
       <div className="navbar-actions">

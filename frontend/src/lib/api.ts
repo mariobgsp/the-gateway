@@ -45,15 +45,20 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!res.ok || !envelope || envelope.code !== "00") {
     throw new ApiError(
-      envelope?.message ?? envelope?.errorMessage ?? `Request failed (${res.status})`,
+      envelope?.message ??
+        envelope?.errorMessage ??
+        `Request failed (${res.status})`,
       envelope?.code,
-      res.status
+      res.status,
     );
   }
   return envelope.data as T;
 }
 
-export function login(username: string, password: string): Promise<LoginResponse> {
+export function login(
+  username: string,
+  password: string,
+): Promise<LoginResponse> {
   return request<LoginResponse>("/gw/auth/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
@@ -69,7 +74,9 @@ export function getApis(): Promise<GatewayListRs[]> {
 }
 
 export function getApiDetail(identifier: string): Promise<ApiGateway> {
-  return request<ApiGateway>(`/gw/apis/detail/${encodeURIComponent(identifier)}`);
+  return request<ApiGateway>(
+    `/gw/apis/detail/${encodeURIComponent(identifier)}`,
+  );
 }
 
 export function saveApi(payload: SaveApiPayload): Promise<unknown> {
@@ -88,7 +95,7 @@ export function deleteApi(identifier: string): Promise<unknown> {
 
 export async function executeApi(
   identifier: string,
-  req: ExecuteApiRequest
+  req: ExecuteApiRequest,
 ): Promise<ExecuteApiResult> {
   let res: Response;
   try {

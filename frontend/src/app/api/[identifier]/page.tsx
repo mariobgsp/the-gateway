@@ -28,7 +28,10 @@ export default function ApiDetailPage() {
   const [reqParamContent, setReqParamContent] = useState("");
   const [hasReqBody, setHasReqBody] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [toast, setToast] = useState<{
+    msg: string;
+    type: "success" | "error";
+  } | null>(null);
 
   const [tryOpen, setTryOpen] = useState(false);
   const [tryHeaders, setTryHeaders] = useState("");
@@ -48,9 +51,13 @@ export default function ApiDetailPage() {
       setApiPath(detail.apiPath);
       setMethod(detail.method);
       setStatus(detail.status ?? "created");
-      setHeaderContent((detail.header ?? "").split(";").filter(Boolean).join("\n"));
+      setHeaderContent(
+        (detail.header ?? "").split(";").filter(Boolean).join("\n"),
+      );
       setHasReqParam(detail.requireRequestParam ?? false);
-      setReqParamContent((detail.param ?? "").split(";").filter(Boolean).join("\n"));
+      setReqParamContent(
+        (detail.param ?? "").split(";").filter(Boolean).join("\n"),
+      );
       setHasReqBody(detail.requireRequestBody ?? false);
       setTryHeaders("");
       setTryParams("");
@@ -77,15 +84,26 @@ export default function ApiDetailPage() {
         path: apiPath.trim(),
         method,
         status,
-        header: headerContent.split("\n").map((s) => s.trim()).filter(Boolean).join(";"),
+        header: headerContent
+          .split("\n")
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .join(";"),
         requireRequestBody: hasReqBody,
         requireRequestParam: hasReqParam,
-        param: reqParamContent.split("\n").map((s) => s.trim()).filter(Boolean).join(";"),
+        param: reqParamContent
+          .split("\n")
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .join(";"),
       });
       setToast({ msg: "API changes saved successfully!", type: "success" });
       await load();
     } catch (err) {
-      setToast({ msg: err instanceof Error ? err.message : "Save failed", type: "error" });
+      setToast({
+        msg: err instanceof Error ? err.message : "Save failed",
+        type: "error",
+      });
     } finally {
       setSaving(false);
     }
@@ -93,12 +111,18 @@ export default function ApiDetailPage() {
 
   const handleDelete = async () => {
     if (!api) return;
-    if (!window.confirm(`Delete "${api.apiName}"? This action cannot be undone.`)) return;
+    if (
+      !window.confirm(`Delete "${api.apiName}"? This action cannot be undone.`)
+    )
+      return;
     try {
       await deleteApi(api.apiIdentifier);
       navigate.replace("/home");
     } catch (err) {
-      setToast({ msg: err instanceof Error ? err.message : "Delete failed", type: "error" });
+      setToast({
+        msg: err instanceof Error ? err.message : "Delete failed",
+        type: "error",
+      });
     }
   };
 
@@ -114,7 +138,9 @@ export default function ApiDetailPage() {
       });
       setTryResponse(result.body);
     } catch (err) {
-      setTryResponse(`❌ Request failed: ${err instanceof Error ? err.message : "Unknown error"}`);
+      setTryResponse(
+        `❌ Request failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+      );
     }
   };
 
@@ -122,7 +148,13 @@ export default function ApiDetailPage() {
     return (
       <div className="app-container animate-fade-in">
         <Navbar />
-        <div style={{ padding: "4rem 2rem", textAlign: "center", color: "var(--txt-secondary)" }}>
+        <div
+          style={{
+            padding: "4rem 2rem",
+            textAlign: "center",
+            color: "var(--txt-secondary)",
+          }}
+        >
           <p className="font-semibold">Loading...</p>
         </div>
       </div>
@@ -133,10 +165,20 @@ export default function ApiDetailPage() {
     return (
       <div className="app-container animate-fade-in">
         <Navbar />
-        <div style={{ padding: "4rem 2rem", textAlign: "center", color: "var(--clr-danger)" }}>
+        <div
+          style={{
+            padding: "4rem 2rem",
+            textAlign: "center",
+            color: "var(--clr-danger)",
+          }}
+        >
           <p className="font-semibold">API not found</p>
           <p className="text-sm mt-1">{loadError}</p>
-          <button className="btn btn-outline mt-1" onClick={() => navigate.push("/home")} style={{ marginTop: "1rem" }}>
+          <button
+            className="btn btn-outline mt-1"
+            onClick={() => navigate.push("/home")}
+            style={{ marginTop: "1rem" }}
+          >
             ← Back to Dashboard
           </button>
         </div>
@@ -149,9 +191,19 @@ export default function ApiDetailPage() {
       <Navbar />
 
       <div className="breadcrumb">
-        <span className="breadcrumb-link" onClick={() => navigate.push("/home")}>Dashboard</span>
+        <span
+          className="breadcrumb-link"
+          onClick={() => navigate.push("/home")}
+        >
+          Dashboard
+        </span>
         <span className="breadcrumb-sep">›</span>
-        <span className="breadcrumb-link" onClick={() => navigate.push("/home")}>API List</span>
+        <span
+          className="breadcrumb-link"
+          onClick={() => navigate.push("/home")}
+        >
+          API List
+        </span>
         <span className="breadcrumb-sep">›</span>
         <span className="breadcrumb-current">{name}</span>
       </div>
@@ -159,22 +211,26 @@ export default function ApiDetailPage() {
       <div style={{ marginBottom: "1.5rem" }}>
         <div className="tabs-bar">
           <button className="tab-btn active">API List</button>
-          <button className="tab-btn" onClick={() => navigate.push("/home")}>Store Account</button>
+          <button className="tab-btn" onClick={() => navigate.push("/home")}>
+            Store Account
+          </button>
         </div>
       </div>
 
       <div className="card-glass" style={{ padding: "2rem" }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "1.25rem",
-          padding: "1rem 1.5rem",
-          background: "rgba(124,58,237,0.08)",
-          border: "1px solid rgba(124,58,237,0.2)",
-          borderRadius: "var(--r-lg)",
-          marginBottom: "2rem",
-          flexWrap: "wrap",
-        }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "1.25rem",
+            padding: "1rem 1.5rem",
+            background: "rgba(124,58,237,0.08)",
+            border: "1px solid rgba(124,58,237,0.2)",
+            borderRadius: "var(--r-lg)",
+            marginBottom: "2rem",
+            flexWrap: "wrap",
+          }}
+        >
           <div style={{ flex: "2 1 160px" }}>
             <div className="form-label">API Name</div>
             <input
@@ -187,14 +243,30 @@ export default function ApiDetailPage() {
           </div>
           <div style={{ flex: "1 1 120px" }}>
             <div className="form-label">Method</div>
-            <select className="input-field" value={method} onChange={(e) => setMethod(e.target.value)}>
-              {METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+            <select
+              className="input-field"
+              value={method}
+              onChange={(e) => setMethod(e.target.value)}
+            >
+              {METHODS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
             </select>
           </div>
           <div style={{ flex: "1 1 120px" }}>
             <div className="form-label">Status</div>
-            <select className="input-field" value={status} onChange={(e) => setStatus(e.target.value)}>
-              {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+            <select
+              className="input-field"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -228,7 +300,10 @@ export default function ApiDetailPage() {
 
         <div className="grid-3">
           <div className="form-group">
-            <label className="toggle-wrapper form-label" style={{ marginBottom: "0.75rem" }}>
+            <label
+              className="toggle-wrapper form-label"
+              style={{ marginBottom: "0.75rem" }}
+            >
               <input type="checkbox" checked readOnly />
               <span>Allowed Request Headers</span>
             </label>
@@ -242,7 +317,10 @@ export default function ApiDetailPage() {
           </div>
 
           <div className="form-group">
-            <label className="toggle-wrapper form-label" style={{ marginBottom: "0.75rem" }}>
+            <label
+              className="toggle-wrapper form-label"
+              style={{ marginBottom: "0.75rem" }}
+            >
               <input
                 type="checkbox"
                 checked={hasReqParam}
@@ -259,20 +337,29 @@ export default function ApiDetailPage() {
                 onChange={(e) => setReqParamContent(e.target.value)}
               />
             ) : (
-              <div style={{
-                minHeight: "120px",
-                background: "rgba(255,255,255,0.02)",
-                border: "1px dashed var(--clr-border)",
-                borderRadius: "var(--r-md)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <span className="text-muted text-sm">(no required parameters)</span>
+              <div
+                style={{
+                  minHeight: "120px",
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px dashed var(--clr-border)",
+                  borderRadius: "var(--r-md)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <span className="text-muted text-sm">
+                  (no required parameters)
+                </span>
               </div>
             )}
           </div>
 
           <div className="form-group">
-            <label className="toggle-wrapper form-label" style={{ marginBottom: "0.75rem" }}>
+            <label
+              className="toggle-wrapper form-label"
+              style={{ marginBottom: "0.75rem" }}
+            >
               <input
                 type="checkbox"
                 checked={hasReqBody}
@@ -280,42 +367,81 @@ export default function ApiDetailPage() {
               />
               <span>Require Request Body</span>
             </label>
-            <div style={{
-              minHeight: "120px",
-              background: "rgba(255,255,255,0.02)",
-              border: "1px dashed var(--clr-border)",
-              borderRadius: "var(--r-md)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
+            <div
+              style={{
+                minHeight: "120px",
+                background: "rgba(255,255,255,0.02)",
+                border: "1px dashed var(--clr-border)",
+                borderRadius: "var(--r-md)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <span className="text-muted text-sm">
-                {hasReqBody ? "Request body will be mandatory" : "(no required body)"}
+                {hasReqBody
+                  ? "Request body will be mandatory"
+                  : "(no required body)"}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "1.5rem" }}>
-        <button className="btn btn-ghost" onClick={() => navigate.push("/home")}>← Back</button>
-        <button className="btn btn-success" onClick={() => setTryOpen(true)}>▶ Try it Now!</button>
-        <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: "0.75rem",
+          marginTop: "1.5rem",
+        }}
+      >
+        <button
+          className="btn btn-ghost"
+          onClick={() => navigate.push("/home")}
+        >
+          ← Back
+        </button>
+        <button className="btn btn-success" onClick={() => setTryOpen(true)}>
+          ▶ Try it Now!
+        </button>
+        <button
+          className="btn btn-primary"
+          onClick={handleSave}
+          disabled={saving}
+        >
           {saving ? "Saving..." : "Save Changes"}
         </button>
-        <button className="btn btn-danger" onClick={handleDelete}>Delete API</button>
+        <button className="btn btn-danger" onClick={handleDelete}>
+          Delete API
+        </button>
       </div>
 
       {tryOpen && (
         <div className="modal-overlay" onClick={() => setTryOpen(false)}>
-          <div className="modal-box" style={{ maxWidth: "700px" }} onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-box"
+            style={{ maxWidth: "700px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
               <h2 className="modal-title">Try it Now — {name}</h2>
-              <button className="modal-close" onClick={() => setTryOpen(false)}>✕</button>
+              <button className="modal-close" onClick={() => setTryOpen(false)}>
+                ✕
+              </button>
             </div>
 
             <div style={{ marginBottom: "0.75rem" }}>
               <span className={`method-badge method-${method}`}>{method}</span>
-              <code style={{ marginLeft: "0.75rem", fontSize: "0.85rem", color: "var(--txt-secondary)" }}>
-                {apiHost}{apiPath}
+              <code
+                style={{
+                  marginLeft: "0.75rem",
+                  fontSize: "0.85rem",
+                  color: "var(--txt-secondary)",
+                }}
+              >
+                {apiHost}
+                {apiPath}
               </code>
             </div>
 
@@ -352,25 +478,34 @@ export default function ApiDetailPage() {
               </div>
             </div>
 
-            <pre style={{
-              background: "var(--clr-bg)",
-              border: "1px solid var(--clr-border)",
-              borderRadius: "var(--r-md)",
-              padding: "1rem",
-              fontSize: "0.8rem",
-              overflowX: "auto",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-all",
-              color: "var(--txt-primary)",
-              maxHeight: "320px",
-              overflowY: "auto",
-            }}>
+            <pre
+              style={{
+                background: "var(--clr-bg)",
+                border: "1px solid var(--clr-border)",
+                borderRadius: "var(--r-md)",
+                padding: "1rem",
+                fontSize: "0.8rem",
+                overflowX: "auto",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-all",
+                color: "var(--txt-primary)",
+                maxHeight: "320px",
+                overflowY: "auto",
+              }}
+            >
               {tryResponse}
             </pre>
 
             <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setTryOpen(false)}>Close</button>
-              <button className="btn btn-success" onClick={handleTryIt}>Send Request</button>
+              <button
+                className="btn btn-outline"
+                onClick={() => setTryOpen(false)}
+              >
+                Close
+              </button>
+              <button className="btn btn-success" onClick={handleTryIt}>
+                Send Request
+              </button>
             </div>
           </div>
         </div>

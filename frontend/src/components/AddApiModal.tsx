@@ -51,10 +51,15 @@ export function AddApiModal({ onClose, onAdd }: AddApiModalProps) {
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">Add New API</h2>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose}>
+            ✕
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+        >
           <div className="form-group">
             <label className="form-label">API Name</label>
             <input
@@ -80,7 +85,11 @@ export function AddApiModal({ onClose, onAdd }: AddApiModalProps) {
 
           <div className="form-group">
             <label className="form-label">HTTP Method</label>
-            <select className="input-field" value={method} onChange={(e) => setMethod(e.target.value)}>
+            <select
+              className="input-field"
+              value={method}
+              onChange={(e) => setMethod(e.target.value)}
+            >
               <option value="GET">GET</option>
               <option value="POST">POST</option>
               <option value="PUT">PUT</option>
@@ -89,11 +98,32 @@ export function AddApiModal({ onClose, onAdd }: AddApiModalProps) {
             </select>
           </div>
 
-          {error && <p style={{ color: "var(--clr-danger)", fontSize: "0.8rem", fontWeight: 500 }}>{error}</p>}
+          {error && (
+            <p
+              style={{
+                color: "var(--clr-danger)",
+                fontSize: "0.8rem",
+                fontWeight: 500,
+              }}
+            >
+              {error}
+            </p>
+          )}
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-outline" onClick={onClose} disabled={submitting}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={submitting}
+            >
               {submitting ? "Adding..." : "Add API"}
             </button>
           </div>

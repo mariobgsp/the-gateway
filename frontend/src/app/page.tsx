@@ -24,7 +24,9 @@ export default function LoginPage() {
       router.replace("/home");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+      setError(
+        err instanceof Error ? err.message : "Login failed. Please try again.",
+      );
       setSubmitting(false);
     }
   };
@@ -38,44 +40,73 @@ export default function LoginPage() {
         </div>
 
         <div className="card-glass">
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "0.25rem" }}>
+          <h2
+            style={{
+              fontSize: "1.25rem",
+              fontWeight: 700,
+              marginBottom: "0.25rem",
+            }}
+          >
             Welcome back
           </h2>
-          <p className="text-secondary text-sm" style={{ marginBottom: "1.75rem" }}>
+          <p
+            className="text-secondary text-sm"
+            style={{ marginBottom: "1.75rem" }}
+          >
             Sign in to your account to continue
           </p>
 
-          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          <form
+            onSubmit={handleLogin}
+            style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          >
             <div className="form-group">
-              <label className="form-label" htmlFor="username">Username</label>
+              <label className="form-label" htmlFor="username">
+                Username
+              </label>
               <input
                 id="username"
                 type="text"
                 className="input-field"
                 placeholder="Enter your username"
                 value={username}
-                onChange={(e) => { setUsername(e.target.value); setError(""); }}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  setError("");
+                }}
                 required
                 autoComplete="username"
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="password">Password</label>
+              <label className="form-label" htmlFor="password">
+                Password
+              </label>
               <input
                 id="password"
                 type="password"
                 className="input-field"
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError("");
+                }}
                 required
                 autoComplete="current-password"
               />
             </div>
 
             {error && (
-              <p style={{ color: "var(--clr-danger)", fontSize: "0.8rem", fontWeight: 500 }} role="alert">
+              <p
+                style={{
+                  color: "var(--clr-danger)",
+                  fontSize: "0.8rem",
+                  fontWeight: 500,
+                }}
+                role="alert"
+              >
                 {error}
               </p>
             )}

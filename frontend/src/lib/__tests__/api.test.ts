@@ -46,15 +46,22 @@ describe("api client", () => {
     const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
     expect(url).toBe("/gw/auth/login");
     expect(init.method).toBe("POST");
-    expect(JSON.parse(init.body as string)).toEqual({ username: "ario_test", password: "password123" });
+    expect(JSON.parse(init.body as string)).toEqual({
+      username: "ario_test",
+      password: "password123",
+    });
   });
 
   it("login throws ApiError with backend message on invalid credentials", async () => {
     vi.mocked(fetch).mockResolvedValue(
       mockFetchResponse(
-        { status: "UNAUTHORIZED", code: "06", message: "06:Unauthorized:invalid username or password" },
-        401
-      )
+        {
+          status: "UNAUTHORIZED",
+          code: "06",
+          message: "06:Unauthorized:invalid username or password",
+        },
+        401,
+      ),
     );
 
     await expect(login("ario_test", "wrong")).rejects.toMatchObject({
@@ -70,7 +77,16 @@ describe("api client", () => {
   });
 
   it("getApis returns gateway list data", async () => {
-    const apis = [{ id: 1, apiName: "Gateway-Cat-Api", apiIdentifier: "gateway-catapi", apiPath: "/v1", method: "GET", status: "created" }];
+    const apis = [
+      {
+        id: 1,
+        apiName: "Gateway-Cat-Api",
+        apiIdentifier: "gateway-catapi",
+        apiPath: "/v1",
+        method: "GET",
+        status: "created",
+      },
+    ];
     vi.mocked(fetch).mockResolvedValue(mockFetchResponse(okEnvelope(apis)));
 
     const result = await getApis();
@@ -78,7 +94,9 @@ describe("api client", () => {
   });
 
   it("getApiDetail encodes identifier", async () => {
-    vi.mocked(fetch).mockResolvedValue(mockFetchResponse(okEnvelope({ apiIdentifier: "a b" })));
+    vi.mocked(fetch).mockResolvedValue(
+      mockFetchResponse(okEnvelope({ apiIdentifier: "a b" })),
+    );
     await getApiDetail("a b");
 
     const [url] = vi.mocked(fetch).mock.calls[0] as [string];
@@ -111,14 +129,21 @@ describe("api client", () => {
 
     const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
     expect(url).toBe("/gw/apis/delete");
-    expect(JSON.parse(init.body as string)).toEqual({ apiIdentifier: "gateway-catapi" });
+    expect(JSON.parse(init.body as string)).toEqual({
+      apiIdentifier: "gateway-catapi",
+    });
   });
 
   it("executeApi returns formatted result", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      mockFetchResponse({ ok: true, httpStatus: 200, body: "{\n  \"a\": 1\n}" })
+      mockFetchResponse({ ok: true, httpStatus: 200, body: '{\n  "a": 1\n}' }),
     );
-    const result = await executeApi("gateway-catapi", { method: "GET", headers: {}, params: { limit: "2" }, body: "" });
+    const result = await executeApi("gateway-catapi", {
+      method: "GET",
+      headers: {},
+      params: { limit: "2" },
+      body: "",
+    });
 
     expect(result.ok).toBe(true);
     expect(result.body).toContain("a");
@@ -129,23 +154,32 @@ describe("api client", () => {
 
   it("executeApi throws ApiError on failure", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      mockFetchResponse({ status: "error", code: "04", message: "bad request" }, 400)
+      mockFetchResponse(
+        { status: "error", code: "04", message: "bad request" },
+        400,
+      ),
     );
 
     await expect(
-      executeApi("x", { method: "GET", headers: {}, params: {}, body: "" })
+      executeApi("x", { method: "GET", headers: {}, params: {}, body: "" }),
     ).rejects.toMatchObject({ message: "bad request" });
   });
 
   it("getStores returns store list", async () => {
-    const stores = [{ id: 1, storeName: "Store A", clientId: "c1", secretKey: "s1" }];
+    const stores = [
+      { id: 1, storeName: "Store A", clientId: "c1", secretKey: "s1" },
+    ];
     vi.mocked(fetch).mockResolvedValue(mockFetchResponse(okEnvelope(stores)));
 
     expect(await getStores()).toEqual(stores);
   });
 
   it("saveStore posts payload", async () => {
-    vi.mocked(fetch).mockResolvedValue(mockFetchResponse(okEnvelope({ id: 1, storeName: "New", clientId: "c", secretKey: "s" })));
+    vi.mocked(fetch).mockResolvedValue(
+      mockFetchResponse(
+        okEnvelope({ id: 1, storeName: "New", clientId: "c", secretKey: "s" }),
+      ),
+    );
     await saveStore({ storeName: "New" });
 
     const [, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
@@ -162,7 +196,12 @@ describe("api client", () => {
   });
 
   it("regenerateSecret returns updated store", async () => {
-    const updated = { id: 1, storeName: "Store A", clientId: "c", secretKey: "gw_new" };
+    const updated = {
+      id: 1,
+      storeName: "Store A",
+      clientId: "c",
+      secretKey: "gw_new",
+    };
     vi.mocked(fetch).mockResolvedValue(mockFetchResponse(okEnvelope(updated)));
 
     expect(await regenerateSecret(1)).toEqual(updated);
@@ -179,7 +218,14 @@ describe("api client", () => {
 
   it("throws ApiError for unknown envelope code", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      mockFetchResponse({ status: "NOT_FOUND", code: "02", message: "02:NotFound:api not found!" }, 404)
+      mockFetchResponse(
+        {
+          status: "NOT_FOUND",
+          code: "02",
+          message: "02:NotFound:api not found!",
+        },
+        404,
+      ),
     );
 
     await expect(getApiDetail("nope")).rejects.toMatchObject({ code: "02" });
