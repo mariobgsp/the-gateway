@@ -1,6 +1,6 @@
 # CLAUDE.md — The Gateway
 
-> **Project:** API Gateway management UI — Next.js 15 BFF + Go backend (big-bang port of Spring Boot 3.1; `gateway-service/` retained until cutover)
+> **Project:** API Gateway management UI — Next.js 15 BFF + Go backend (`gateway-go`, chi + pgx)
 > **Workflow:** `team-pr` (PR-based, protect `main`), Conventional Commits, GitHub Actions
 > **Domain:** BffGateway, GatewayForward, ForwardRequest, UpstreamPort
 

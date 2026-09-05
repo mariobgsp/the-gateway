@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "The Gateway — API Management Platform",
-  description: "Gateway services example with a React Next.js frontend and Spring Boot backend.",
+  description:
+    "Gateway services example with a React Next.js frontend and Go backend.",
 };
 
 export const viewport: Viewport = {

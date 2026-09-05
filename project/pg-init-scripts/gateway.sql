@@ -65,8 +65,8 @@ drop table if exists public.store_account cascade;
 create table public.store_account(
 	id SERIAL primary key,
 	store_name varchar(255),
-	secretKey varchar(255),
-	clientId varchar(255)
+	secret_key varchar(255),
+	client_id varchar(255)
 );
 
 create table public.user_store_r(
@@ -106,9 +106,9 @@ CREATE TABLE public.api_gateway (
 INSERT INTO public.api_gateway (api_name, api_identifier, api_host, api_path, method, header, require_request_body, require_request_param, param, status, created_at, updated_at) VALUES 
 ('Gateway-Example-1','gateway-example-1', 'https://api.thecatapi.com', '/v1/images/search', 'GET', 'x-api-key;Content-Type', false, false, null, 'created', NOW(), NOW()), 
 ('Gateway-Example-2','gateway-example-2', 'https://api.thecatapi.com', '/v1/breeds', 'GET', 'Content-Type', false, false, null, 'published', NOW(), NOW()),
-('Gateway-catApi','gateway-catapi', 'https://api.thecatapi.com', '/v1/images/search', 'GET', 'x-api-key;Content-Type', false, false, null, 'created', NOW(), NOW());
+('Gateway-Cat-Api','gateway-catapi', 'https://api.thecatapi.com', '/v1/images/search', 'GET', 'x-api-key;Content-Type', false, false, null, 'created', NOW(), NOW());
 
-INSERT INTO public.store_account (store_name, "secretKey", "clientId") VALUES
+INSERT INTO public.store_account (store_name, secret_key, client_id) VALUES
 ('Store-Example-Satu', 'gw_secret_placeholder_1', 'client_store1'),
 ('Store-Example-Dua', 'gw_secret_placeholder_2', 'client_store2');
 

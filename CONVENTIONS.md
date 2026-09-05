@@ -22,11 +22,11 @@
 | ------ | --------- | ------ |
 | lint (frontend) | `cd frontend && npm run lint` | `audit-code` lint gate |
 | typecheck (frontend) | `cd frontend && npm run typecheck` | `verify-work` mechanical |
-| lint (backend) | `checkstyle` (to be wired) | `audit-code` lint gate |
+| lint (backend) | `cd gateway-go && go vet ./...` | `audit-code` lint gate |
 | build (frontend) | `cd frontend && npm run build` | `verify-work` mechanical |
-| build (backend) | `cd gateway-service && ./mvnw package` | `verify-work` |
+| build (backend) | `cd gateway-go && go build ./...` | `verify-work` |
 | test (frontend) | `cd frontend && npm test` | `develop-tdd` red-green |
-| test (backend) | `cd gateway-service && ./mvnw test` | `develop-tdd` |
+| test (backend) | `cd gateway-go && go test ./...` | `develop-tdd` |
 | e2e | `cd frontend && npm run test:e2e` | `verify-work` full-stack |
 | import-boundaries | `test -f specs/import-boundaries.json && bash scripts/check-import-boundaries.sh` | on module split/merge |
 
@@ -38,8 +38,8 @@
 ## CI: GitHub Actions
 
 - Platform: **GitHub Actions** (answer recorded 2026-08-25)
-- Workflows: `.github/workflows/ci.yml` (lint→typecheck→test→build) to be wired via `wire-ci`
-- Secrets: `BACKEND_API_URL`, `SPRING_DATASOURCE_*` for docker
+- Workflows: `.github/workflows/ci.yml` (backend build/vet/test, frontend lint→typecheck→test→build)
+- Secrets: `BACKEND_API_URL`, `DATABASE_URL` for docker
 
 ## Specs Layout (bigpowers)
 

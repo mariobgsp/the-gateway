@@ -18,35 +18,13 @@ services:
       - ./db-data/postgres/:/var/lib/postgresql/data/:z,U
       - ./pg-init-scripts:/docker-entrypoint-initdb.d:z
 
-  gateway-service:
-    container_name: gateway-service
-    build:
-      context: ../gateway-service
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-    restart: always
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/gateway
-      - SPRING_DATASOURCE_USERNAME=microservices
-      - SPRING_DATASOURCE_PASSWORD=password
-      - JAVA_OPTS=-Xmx256m -Xms128m -XX:MaxRAMPercentage=75.0
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
-
   gateway-go:
     container_name: gateway-go
     build:
       context: ../gateway-go
       dockerfile: Dockerfile
     ports:
-      - "8081:8080"
+      - "8080:8080"
     depends_on:
       - postgres
     restart: always
@@ -68,9 +46,9 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - gateway-service
+      - gateway-go
     restart: always
     environment:
-      - BACKEND_API_URL=http://gateway-service:8080
+      - BACKEND_API_URL=http://gateway-go:8080
       # set COOKIE_SECURE=true when serving over HTTPS
       - COOKIE_SECURE=false
