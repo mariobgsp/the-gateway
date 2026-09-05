@@ -8,16 +8,36 @@ Gateway services example — **Next.js 15 (App Router) BFF** + **Go backend (`ga
 
 ## Architecture
 
+### Main: end-to-end request flow
+
+```mermaid
+flowchart LR
+    Browser -->|"/gw/* + httpOnly session cookie<br/>(JWT never exposed to JS)"| BFF["Next.js BFF<br/>route handlers /gw/*"]
+    BFF -->|"bffProxy: session→401 + envelope mapping<br/>src/lib/bffGateway.ts"| Go["Go backend gateway-go<br/>JWT auth + ForwardRequest seam"]
+    Go -->|"service.Do: allowlist + JavaURLEncode<br/>UpstreamPort internal (5s dial / 30s timeout)"| DB[("PostgreSQL + upstream APIs<br/>(e.g. thecatapi.com)")]
 ```
-Browser ──▶ Next.js frontend (BFF route handlers /gw/*)
-                    │  httpOnly session cookie (JWT never exposed to JS)
-                    │  deep module src/lib/bffGateway.ts:bffProxy hides session→401 + envelope mapping
-                    ▼
-              Go backend gateway-go (JWT auth, ForwardRequest typed seam)
-                    │  GatewayForward: handler.Forward → ForwardRequest{PathName,QueryParams,Headers,Body} → service.Do (allowlist, JavaURLEncode)
-                    │  UpstreamPort internal (net/http client, 5s dial / 30s timeout)
-                    ▼
-              PostgreSQL + upstream APIs (e.g. thecatapi.com)
+
+### Supporting 1: BffGateway (bffProxy decision flow)
+
+```mermaid
+flowchart TD
+    A["/gw/* adapter<br/>{backendPath, method, validate}"] --> B["getSessionToken()"]
+    B -->|"no token"| C["401 {code: 98}"]
+    B -->|"token"| D["callBackend + sanitizeHeaders/Params (private)"]
+    D -->|"envelope.code != 00"| E["error passthrough<br/>httpStatus>=400 ? httpStatus : 500"]
+    D -->|"envelope.code == 00"| F["200 + envelope"]
+```
+
+### Supporting 2: GatewayForward (Forward.Do pipeline)
+
+```mermaid
+flowchart TD
+    A["handler.Forward<br/>ParseForwardPath (?foo→'', last-wins, no double-decode)"] --> B["ForwardRequest<br/>{PathName, QueryParams, Headers, Body}"]
+    B --> C["Lookup config by identifier<br/>miss → 404 code 02"]
+    C --> D["BuildForwardURL<br/>allowlist + JavaURLEncode"]
+    D --> E["FilterHeaders<br/>case-insensitive allowlist"]
+    E --> F["requireRequestBody gate<br/>empty → 400 code 04"]
+    F --> G["invokeUpstream (net/http)<br/>5s dial / 30s timeout"]
 ```
 
 All backend calls proxied server-side. JWT in `httpOnly`, `SameSite=Lax`, `Secure` (production) cookie — never `localStorage` — guarded by `middleware.ts`.
