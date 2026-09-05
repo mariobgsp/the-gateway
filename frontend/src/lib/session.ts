@@ -18,7 +18,10 @@ export function isSecureCookie(): boolean {
   return process.env.NODE_ENV === "production";
 }
 
-export function sessionCookieOptions(maxAge?: number, expires?: Date): SessionCookieOptions {
+export function sessionCookieOptions(
+  maxAge?: number,
+  expires?: Date,
+): SessionCookieOptions {
   return {
     httpOnly: true,
     sameSite: "lax",
