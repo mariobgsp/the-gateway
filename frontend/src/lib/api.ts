@@ -11,26 +11,24 @@ import type {
 } from "@/types";
 
 export class ApiError extends Error {
-  code?: string;
-  status?: number;
-
-  constructor(message: string, code?: string, status?: number) {
+  constructor(
+    message: string,
+    readonly code?: string,
+    readonly status?: number,
+  ) {
     super(message);
     this.name = "ApiError";
-    this.code = code;
-    this.status = status;
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  let res: Response;
+type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  let response: Response;
   try {
-    res = await fetch(path, {
+    response = await fetch(path, {
       ...init,
-      headers: {
-        "Content-Type": "application/json",
-        ...(init?.headers ?? {}),
-      },
+      headers: { "Content-Type": "application/json", ...init.headers },
     });
   } catch {
     throw new ApiError("Network error - please try again", "99", 0);
@@ -38,114 +36,65 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   let envelope: ApiEnvelope | null = null;
   try {
-    envelope = (await res.json()) as ApiEnvelope;
+    envelope = (await response.json()) as ApiEnvelope;
   } catch {
-    envelope = null;
+    // Keep the response error below useful even when the server sent no JSON.
   }
-
-  if (!res.ok || !envelope || envelope.code !== "00") {
+  if (!response.ok || envelope?.code !== "00") {
     throw new ApiError(
-      envelope?.message ??
-        envelope?.errorMessage ??
-        `Request failed (${res.status})`,
+      envelope?.message ?? envelope?.errorMessage ?? `Request failed (${response.status})`,
       envelope?.code,
-      res.status,
+      response.status,
     );
   }
   return envelope.data as T;
 }
 
-export function login(
-  username: string,
-  password: string,
-): Promise<LoginResponse> {
-  return request<LoginResponse>("/gw/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ username, password }),
+function call<T>(path: string, method: HttpMethod = "GET", body?: unknown): Promise<T> {
+  return request<T>(path, {
+    method,
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
 }
 
-export function logout(): Promise<unknown> {
-  return request<unknown>("/gw/auth/logout", { method: "POST" });
-}
-
-export function getApis(): Promise<GatewayListRs[]> {
-  return request<GatewayListRs[]>("/gw/apis");
-}
-
-export function getApiDetail(identifier: string): Promise<ApiGateway> {
-  return request<ApiGateway>(
-    `/gw/apis/detail/${encodeURIComponent(identifier)}`,
-  );
-}
-
-export function saveApi(payload: SaveApiPayload): Promise<unknown> {
-  return request<unknown>("/gw/apis/save", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-}
-
-export function deleteApi(identifier: string): Promise<unknown> {
-  return request<unknown>("/gw/apis/delete", {
-    method: "POST",
-    body: JSON.stringify({ apiIdentifier: identifier }),
-  });
-}
+export const login = (username: string, password: string): Promise<LoginResponse> =>
+  call<LoginResponse>("/gw/auth/login", "POST", { username, password });
+export const logout = (): Promise<unknown> => call("/gw/auth/logout", "POST");
+export const getApis = (): Promise<GatewayListRs[]> => call("/gw/apis");
+export const getApiDetail = (identifier: string): Promise<ApiGateway> =>
+  call(`/gw/apis/detail/${encodeURIComponent(identifier)}`);
+export const saveApi = (payload: SaveApiPayload): Promise<unknown> =>
+  call("/gw/apis/save", "POST", payload);
+export const deleteApi = (identifier: string): Promise<unknown> =>
+  call("/gw/apis/delete", "POST", { apiIdentifier: identifier });
+export const getStores = (): Promise<StoreRs[]> => call("/gw/stores");
+export const getStoreDetail = (id: number): Promise<StoreRs> =>
+  call(`/gw/stores/detail/${id}`);
+export const saveStore = (payload: SaveStorePayload): Promise<StoreRs> =>
+  call("/gw/stores/save", "POST", payload);
+export const deleteStore = (id: number): Promise<unknown> =>
+  call("/gw/stores/delete", "POST", { storeId: id });
+export const regenerateSecret = (id: number): Promise<StoreRs> =>
+  call("/gw/stores/regenerate", "POST", { storeId: id });
 
 export async function executeApi(
   identifier: string,
-  req: ExecuteApiRequest,
+  input: ExecuteApiRequest,
 ): Promise<ExecuteApiResult> {
-  let res: Response;
+  let response: Response;
   try {
-    res = await fetch(`/gw/apis/execute/${encodeURIComponent(identifier)}`, {
+    response = await fetch(`/gw/apis/execute/${encodeURIComponent(identifier)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(req),
+      body: JSON.stringify(input),
     });
   } catch {
     throw new ApiError("Network error - please try again", "99", 0);
   }
-
-  if (!res.ok) {
-    let message = `Request failed (${res.status})`;
-    try {
-      const envelope = (await res.json()) as ApiEnvelope;
-      if (envelope?.message) message = envelope.message;
-    } catch {
-      // ignore
-    }
-    throw new ApiError(message, undefined, res.status);
+  if (!response.ok) {
+    let message = `Request failed (${response.status})`;
+    try { message = ((await response.json()) as ApiEnvelope).message ?? message; } catch { /* non-JSON error */ }
+    throw new ApiError(message, undefined, response.status);
   }
-  return (await res.json()) as ExecuteApiResult;
-}
-
-export function getStores(): Promise<StoreRs[]> {
-  return request<StoreRs[]>("/gw/stores");
-}
-
-export function getStoreDetail(id: number): Promise<StoreRs> {
-  return request<StoreRs>(`/gw/stores/detail/${id}`);
-}
-
-export function saveStore(payload: SaveStorePayload): Promise<StoreRs> {
-  return request<StoreRs>("/gw/stores/save", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-}
-
-export function deleteStore(id: number): Promise<unknown> {
-  return request<unknown>("/gw/stores/delete", {
-    method: "POST",
-    body: JSON.stringify({ storeId: id }),
-  });
-}
-
-export function regenerateSecret(id: number): Promise<StoreRs> {
-  return request<StoreRs>("/gw/stores/regenerate", {
-    method: "POST",
-    body: JSON.stringify({ storeId: id }),
-  });
+  return (await response.json()) as ExecuteApiResult;
 }

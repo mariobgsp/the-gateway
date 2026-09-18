@@ -1,324 +1,40 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AddApiModal } from "@/components/AddApiModal";
-import { AddStoreModal } from "@/components/AddStoreModal";
-import { Navbar } from "@/components/Navbar";
-import { Toast } from "@/components/Toast";
-import {
-  deleteApi,
-  deleteStore,
-  getApis,
-  getStores,
-  saveApi,
-  saveStore,
-} from "@/lib/api";
+import { AddApiModal, AddStoreModal } from "@/components/EntityModal";
+import { AppShell, StateBlock, Tabs } from "@/components/ui";
+import { useResource } from "@/hooks/useResource";
+import { useToast } from "@/hooks/useToast";
+import { deleteApi, deleteStore, getApis, getStores, saveApi, saveStore } from "@/lib/api";
 import type { GatewayListRs, SaveApiPayload, StoreRs } from "@/types";
 
 type Tab = "api" | "store";
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<Tab>("api");
-  const [showAddApi, setShowAddApi] = useState(false);
-  const [showAddStore, setShowAddStore] = useState(false);
-  const [apis, setApis] = useState<GatewayListRs[]>([]);
-  const [stores, setStores] = useState<StoreRs[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [toast, setToast] = useState<{
-    msg: string;
-    type: "success" | "error";
-  } | null>(null);
-  const navigate = useRouter();
+  const router = useRouter();
+  const [active, setActive] = useState<Tab>("api");
+  const [modal, setModal] = useState<Tab | null>(null);
+  const { showToast, view: toast } = useToast();
+  const load = useCallback(async () => Promise.all([getApis(), getStores()]), []);
+  const { data: [apis, stores], loading, error, reload } = useResource(load, [[], []] as [GatewayListRs[], StoreRs[]]);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const [apiList, storeList] = await Promise.all([getApis(), getStores()]);
-      setApis(apiList);
-      setStores(storeList);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load data");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  async function addApi(payload: SaveApiPayload) { await saveApi(payload); await reload(); showToast("API created successfully!"); }
+  async function addStore(name: string) { await saveStore({ storeName: name }); await reload(); showToast("Store created successfully!"); }
+  async function removeApi(item: GatewayListRs) { if (!window.confirm(`Delete "${item.apiName}"?`)) return; try { await deleteApi(item.apiIdentifier); await reload(); showToast("API deleted."); } catch (e) { showToast(e instanceof Error ? e.message : "Delete failed", "error"); } }
+  async function removeStore(item: StoreRs) { if (!window.confirm(`Delete "${item.storeName}"?`)) return; try { await deleteStore(item.id); await reload(); showToast("Store deleted."); } catch (e) { showToast(e instanceof Error ? e.message : "Delete failed", "error"); } }
 
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
-
-  const handleAddApi = async (api: SaveApiPayload) => {
-    await saveApi(api);
-    await loadData();
-    setToast({ msg: "API created successfully!", type: "success" });
-  };
-
-  const handleAddStore = async (name: string) => {
-    await saveStore({ storeName: name });
-    await loadData();
-    setToast({ msg: "Store created successfully!", type: "success" });
-  };
-
-  const handleDeleteApi = async (api: GatewayListRs) => {
-    if (!window.confirm(`Delete "${api.apiName}"?`)) return;
-    try {
-      await deleteApi(api.apiIdentifier);
-      await loadData();
-      setToast({ msg: "API deleted.", type: "success" });
-    } catch (err) {
-      setToast({
-        msg: err instanceof Error ? err.message : "Delete failed",
-        type: "error",
-      });
-    }
-  };
-
-  const handleDeleteStore = async (store: StoreRs) => {
-    if (!window.confirm(`Delete "${store.storeName}"?`)) return;
-    try {
-      await deleteStore(store.id);
-      await loadData();
-      setToast({ msg: "Store deleted.", type: "success" });
-    } catch (err) {
-      setToast({
-        msg: err instanceof Error ? err.message : "Delete failed",
-        type: "error",
-      });
-    }
-  };
-
-  return (
-    <div className="app-container animate-fade-in">
-      <Navbar username="Admin" />
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "1.25rem",
-        }}
-      >
-        <div className="tabs-bar">
-          <button
-            className={`tab-btn ${activeTab === "api" ? "active" : ""}`}
-            onClick={() => setActiveTab("api")}
-          >
-            API List
-          </button>
-          <button
-            className={`tab-btn ${activeTab === "store" ? "active" : ""}`}
-            onClick={() => setActiveTab("store")}
-          >
-            Store Account
-          </button>
-        </div>
-
-        <button
-          className="btn btn-primary"
-          onClick={() =>
-            activeTab === "api" ? setShowAddApi(true) : setShowAddStore(true)
-          }
-        >
-          + {activeTab === "api" ? "Add API" : "Add Store"}
-        </button>
-      </div>
-
-      <div className="card-glass" style={{ padding: 0, overflow: "hidden" }}>
-        {activeTab === "api" ? (
-          <div className="table-header">
-            <div className="table-cell" style={{ flex: 2 }}>
-              API Name
-            </div>
-            <div className="table-cell table-cell-center">Path</div>
-            <div className="table-cell table-cell-center">Method</div>
-            <div className="table-cell table-cell-center">Status</div>
-            <div className="table-cell table-cell-center">Actions</div>
-          </div>
-        ) : (
-          <div className="table-header">
-            <div className="table-cell" style={{ flex: 2 }}>
-              Store Name
-            </div>
-            <div className="table-cell table-cell-center">Client ID</div>
-            <div className="table-cell table-cell-center">Actions</div>
-          </div>
-        )}
-
-        {loading && (
-          <div
-            style={{
-              padding: "4rem 2rem",
-              textAlign: "center",
-              color: "var(--txt-secondary)",
-            }}
-          >
-            <p className="font-semibold">Loading...</p>
-          </div>
-        )}
-
-        {!loading && error && (
-          <div
-            style={{
-              padding: "4rem 2rem",
-              textAlign: "center",
-              color: "var(--clr-danger)",
-            }}
-          >
-            <p className="font-semibold">Failed to load data</p>
-            <p className="text-sm mt-1">{error}</p>
-          </div>
-        )}
-
-        {!loading &&
-          !error &&
-          activeTab === "api" &&
-          apis.map((api) => (
-            <div
-              key={api.id}
-              className="table-row"
-              onClick={() => navigate.push(`/api/${api.apiIdentifier}`)}
-              title="Click to view / edit"
-            >
-              <div className="table-cell" style={{ flex: 2, fontWeight: 600 }}>
-                {api.apiName}
-              </div>
-              <div className="table-cell table-cell-center text-secondary">
-                {api.apiIdentifier}
-              </div>
-              <div className="table-cell table-cell-center">
-                <span className={`method-badge method-${api.method}`}>
-                  {api.method}
-                </span>
-              </div>
-              <div className="table-cell table-cell-center">
-                <span className={`status-pill status-${api.status}`}>
-                  {api.status}
-                </span>
-              </div>
-              <div
-                className="table-cell table-cell-center"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "0.5rem",
-                    justifyContent: "center",
-                  }}
-                >
-                  <button
-                    className="btn btn-outline btn-sm"
-                    onClick={() => navigate.push(`/api/${api.apiIdentifier}`)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleDeleteApi(api)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-
-        {!loading &&
-          !error &&
-          activeTab === "store" &&
-          stores.map((store) => (
-            <div
-              key={store.id}
-              className="table-row"
-              onClick={() => navigate.push(`/store/${store.id}`)}
-              title="Click to edit"
-            >
-              <div className="table-cell" style={{ flex: 2, fontWeight: 600 }}>
-                {store.storeName}
-              </div>
-              <div className="table-cell table-cell-center text-secondary">
-                {store.clientId}
-              </div>
-              <div
-                className="table-cell table-cell-center"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "0.5rem",
-                    justifyContent: "center",
-                  }}
-                >
-                  <button
-                    className="btn btn-outline btn-sm"
-                    onClick={() => navigate.push(`/store/${store.id}`)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleDeleteStore(store)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-
-        {!loading && !error && activeTab === "api" && apis.length === 0 && (
-          <div
-            style={{
-              padding: "4rem 2rem",
-              textAlign: "center",
-              color: "var(--txt-secondary)",
-            }}
-          >
-            <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>🔌</div>
-            <p className="font-semibold">No APIs yet</p>
-            <p className="text-sm mt-1">Click + Add API to get started</p>
-          </div>
-        )}
-        {!loading && !error && activeTab === "store" && stores.length === 0 && (
-          <div
-            style={{
-              padding: "4rem 2rem",
-              textAlign: "center",
-              color: "var(--txt-secondary)",
-            }}
-          >
-            <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>🏪</div>
-            <p className="font-semibold">No stores yet</p>
-            <p className="text-sm mt-1">Click + Add Store to get started</p>
-          </div>
-        )}
-      </div>
-
-      {showAddApi && (
-        <AddApiModal
-          onClose={() => setShowAddApi(false)}
-          onAdd={handleAddApi}
-        />
-      )}
-      {showAddStore && (
-        <AddStoreModal
-          onClose={() => setShowAddStore(false)}
-          onAdd={handleAddStore}
-        />
-      )}
-
-      {toast && (
-        <Toast
-          message={toast.msg}
-          type={toast.type}
-          onDone={() => setToast(null)}
-        />
-      )}
+  const isApi = active === "api";
+  return <AppShell username="Admin"><div className="dashboard-toolbar"><Tabs active={active} onChange={setActive} /><button className="btn btn-primary" onClick={() => setModal(active)}>+ {isApi ? "Add API" : "Add Store"}</button></div>
+    <div className="card-glass table-card"><div className="table-header">{(isApi ? ["API Name", "Path", "Method", "Status", "Actions"] : ["Store Name", "Client ID", "Actions"]).map((label, index) => <div key={label} className={`table-cell ${index > 0 ? "table-cell-center" : ""}`} style={index === 0 ? { flex: 2 } : undefined}>{label}</div>)}</div>
+      {loading && <StateBlock title="Loading..." />}
+      {!loading && error && <StateBlock title="Failed to load data" detail={error} error />}
+      {!loading && !error && (isApi ? apis.map((item) => <div className="table-row" key={item.id} onClick={() => router.push(`/api/${item.apiIdentifier}`)} title="Click to view / edit"><div className="table-cell" style={{ flex: 2, fontWeight: 600 }}>{item.apiName}</div><div className="table-cell table-cell-center text-secondary">{item.apiIdentifier}</div><div className="table-cell table-cell-center"><span className={`method-badge method-${item.method}`}>{item.method}</span></div><div className="table-cell table-cell-center"><span className={`status-pill status-${item.status}`}>{item.status}</span></div><Actions onEdit={() => router.push(`/api/${item.apiIdentifier}`)} onDelete={() => removeApi(item)} /></div>) : stores.map((item) => <div className="table-row" key={item.id} onClick={() => router.push(`/store/${item.id}`)} title="Click to edit"><div className="table-cell" style={{ flex: 2, fontWeight: 600 }}>{item.storeName}</div><div className="table-cell table-cell-center text-secondary">{item.clientId}</div><Actions onEdit={() => router.push(`/store/${item.id}`)} onDelete={() => removeStore(item)} /></div>))}
+      {!loading && !error && (isApi ? apis.length === 0 : stores.length === 0) && <StateBlock title={isApi ? "No APIs yet" : "No stores yet"} detail={`Click + Add ${isApi ? "API" : "Store"} to get started`} empty={<div className="empty-icon">{isApi ? "🔌" : "🏪"}</div>} />}
     </div>
-  );
+    {modal === "api" && <AddApiModal onClose={() => setModal(null)} onAdd={addApi} />}{modal === "store" && <AddStoreModal onClose={() => setModal(null)} onAdd={addStore} />}{toast}</AppShell>;
+}
+
+function Actions({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+  return <div className="table-cell table-cell-center" onClick={(e) => e.stopPropagation()}><div className="row-actions"><button className="btn btn-outline btn-sm" onClick={onEdit}>Edit</button><button className="btn btn-danger btn-sm" onClick={onDelete}>Delete</button></div></div>;
 }

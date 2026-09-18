@@ -1,139 +1,65 @@
 # The Gateway
 
-[![CI](https://github.com/mariobgsp/the-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/mariobgsp/the-gateway/actions/workflows/ci.yml)
-
-Gateway services example — **Next.js 15 (App Router) BFF** + **Go backend (`gateway-go`, chi + pgx)** + **PostgreSQL**. Deep modules via `BffGateway` + `GatewayForward(ForwardRequest)`.
-
-## Design Reference
-
-[Figma Link](https://www.figma.com/design/8IKh4NrzxsXJajEt8jL32x/the-gateway?node-id=1-6344&t=RuiBqghCN5cc1GHp-1)
+Next.js 15 API management UI with a Go gateway backend and PostgreSQL.
 
 ## Architecture
 
-### Main: end-to-end request flow
-
-```mermaid
-flowchart LR
-    Browser -->|"/gw/* + httpOnly session cookie<br/>(JWT never exposed to JS)"| BFF["Next.js BFF<br/>route handlers /gw/*"]
-    BFF -->|"bffProxy: session→401 + envelope mapping<br/>src/lib/bffGateway.ts"| Go["Go backend gateway-go<br/>JWT auth + ForwardRequest seam"]
-    Go -->|"service.Do: allowlist + JavaURLEncode<br/>UpstreamPort internal (5s dial / 30s timeout)"| DB[("PostgreSQL + upstream APIs<br/>(e.g. thecatapi.com)")]
+```text
+Browser
+  │ httpOnly gw_session cookie
+  ▼
+Next.js BFF /gw/[...path]
+  │ bffGateway: auth, timeout, envelope mapping
+  ▼
+Go gateway-go
+  ├── JWT auth + rate limiting
+  ├── API and store services
+  └── GatewayForward → configured upstream APIs
 ```
 
-### Supporting 1: BffGateway (bffProxy decision flow)
+All backend calls are server-side. JWTs use an `httpOnly`, `SameSite=Lax`, secure-in-production cookie; they are never exposed to browser JavaScript or stored in `localStorage`.
 
-```mermaid
-flowchart TD
-    A["/gw/* adapter<br/>{backendPath, method, validate}"] --> B["getSessionToken()"]
-    B -->|"no token"| C["401 {code: 98}"]
-    B -->|"token"| D["callBackend + sanitizeHeaders/Params (private)"]
-    D -->|"envelope.code != 00"| E["error passthrough<br/>httpStatus>=400 ? httpStatus : 500"]
-    D -->|"envelope.code == 00"| F["200 + envelope"]
-```
+## Run locally
 
-### Supporting 2: GatewayForward (Forward.Do pipeline)
-
-```mermaid
-flowchart TD
-    A["handler.Forward<br/>ParseForwardPath (?foo→'', last-wins, no double-decode)"] --> B["ForwardRequest<br/>{PathName, QueryParams, Headers, Body}"]
-    B --> C["Lookup config by identifier<br/>miss → 404 code 02"]
-    C --> D["BuildForwardURL<br/>allowlist + JavaURLEncode"]
-    D --> E["FilterHeaders<br/>case-insensitive allowlist"]
-    E --> F["requireRequestBody gate<br/>empty → 400 code 04"]
-    F --> G["invokeUpstream (net/http)<br/>5s dial / 30s timeout"]
-```
-
-All backend calls proxied server-side. JWT in `httpOnly`, `SameSite=Lax`, `Secure` (production) cookie — never `localStorage` — guarded by `middleware.ts`.
-
-## Ops Tuning
-
-- `project/docker-compose.yml`: `gateway-go` 64M limit (HPA `k8s/gateway-go/{deployment,service,hpa}.yaml` 32Mi request / 64Mi limit, HPA 2–10 CPU 60%/mem 70%)
-- `gateway-go/Dockerfile`: multi-stage `scratch` ~12M (ponytail ceiling)
-
-## Running with Docker
-
-1. Docker + Docker Compose
-2. `cd project && docker compose up -d --build`
-
-Services: Frontend `http://localhost:3000` (or `3001` when vivante occupies 3000), Backend Go `http://localhost:8080`, Postgres `5432`.
-
-Default creds: `ario_test` / `password123` (seed `project/pg-init-scripts/gateway.sql`).
-
-## Running locally without Docker
-
-### Backend Go (Postgres)
+Start PostgreSQL and seed it:
 
 ```bash
-cd ../project && docker compose up -d postgres   # or local Postgres
-psql "$DATABASE_URL" -f project/pg-init-scripts/gateway.sql  # seed once
-cd ../gateway-go
-go run ./cmd/server  # DATABASE_URL=postgres://microservices:password@localhost:5432/gateway?sslmode=disable PORT=8080
+cd project && docker compose up -d postgres
+psql "$DATABASE_URL" -f project/pg-init-scripts/gateway.sql
 ```
 
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev          # or BACKEND_API_URL=http://localhost:8080 npm run dev -- -p 3001
-# prod: BACKEND_API_URL=http://localhost:8080 npm run build && npm run start -- -p 3001
-```
-
-## Testing
-
-### Frontend (Vitest 20 tests — 15 api + 5 bffGateway)
-
-```bash
-cd frontend
-npm test             # bffProxy 401/200/null→500/404 preserve/200+04→500
-```
-
-### Backend Go
+Start the backend:
 
 ```bash
 cd gateway-go
-go vet ./... && go test ./...
+DATABASE_URL=postgres://microservices:password@localhost:5432/gateway?sslmode=disable go run ./cmd/server
 ```
 
-### E2e Playwright (full stack, Go + Postgres)
+Start the frontend:
 
 ```bash
 cd frontend
-npx playwright install chromium
-npm run test:e2e  # webServer boots Go :8080 + Next.js 3001 (3000 workaround vivante); Postgres must be seeded (see above)
-# 10 passed: auth, API add/edit/delete/detail/Try-It, Store add/edit/regenerate/delete
+BACKEND_API_URL=http://localhost:8080 npm run dev
 ```
 
-### Lint / typecheck / build
+The frontend runs on `http://localhost:3000`; the Playwright configuration uses `3001` to avoid a local port conflict.
+
+Seed credentials: `ario_test` / `password123`.
+
+## Tests and builds
 
 ```bash
-cd frontend
-npm run lint
-npm run typecheck
-npm run build
-cd ../gateway-go && go vet ./... && go build -o /tmp/gateway-go ./cmd/server
+cd gateway-go && go build ./... && go vet ./... && go test ./...
+cd frontend && npm run lint && npm run typecheck && npm test && npm run build
+cd frontend && npm run test:e2e
 ```
 
-## Verification
+## Key modules
 
-```bash
-test -f specs/PLAN-AUDIT_LATEST.md && grep -q "Verdict.*READY" specs/PLAN-AUDIT_LATEST.md
-npm run lint && npm run typecheck && npm test && npm run build   # frontend
-cd ../gateway-go && go vet ./... && go test ./...                # backend
-npm run test:e2e                                                  # e2e 10/10
-```
+- `frontend/src/lib/bffGateway.ts` — session authentication, backend transport, timeout, sanitization, and envelope mapping.
+- `frontend/src/lib/gwRoutes.ts` — declarative `/gw/*` route table.
+- `gateway-go/internal/api` — response envelope, error codes, and error mapping.
+- `gateway-go/internal/service/forward.go` — typed `ForwardRequest` pipeline.
+- `gateway-go/internal/store` — entity-specific PostgreSQL queries.
 
-## Environment variables
-
-| Variable | Description | Default |
-| ---------- | ------------- | --------- |
-| `BACKEND_API_URL` | Go gateway URL | `http://localhost:8080` |
-| `DATABASE_URL` (Go) | Postgres DSN for `gateway-go` | `postgres://microservices:password@postgres:5432/gateway?sslmode=disable` |
-| `COOKIE_SECURE` | Set `true` on HTTPS | `false` local |
-
-## Deep Modules
-
-- `BffGateway` (`src/lib/bffGateway.ts:bffProxy`) — deep, hides `getSessionToken→401 {code:"98"}` + `callBackend` + `envelopeError` `httpStatus>=400?httpStatus:500`
-- `GatewayForward` (`gateway-go/internal/service/forward.go`: `ParseForwardPath` tolerant `?foo→""` keep-last, no double-decode, `BuildForwardURL` canonical `JavaURLEncode`, `FilterHeaders` case-insensitive)
-- `UpstreamPort` internal to `GatewayForward` (`net/http` client)
-
-See `specs/tech-architecture/tech-stack.md`, `specs/PLAN-AUDIT_LATEST.md` (READY), `k8s/gateway-go/`.
+Local PostgreSQL runtime files under `project/db-data/` are ignored and are not part of the repository.

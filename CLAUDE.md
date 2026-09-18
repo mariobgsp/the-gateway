@@ -1,49 +1,41 @@
 # CLAUDE.md — The Gateway
 
 > **Project:** API Gateway management UI — Next.js 15 BFF + Go backend (`gateway-go`, chi + pgx)
-> **Workflow:** `team-pr` (PR-based, protect `main`), Conventional Commits, GitHub Actions
-> **Domain:** BffGateway, GatewayForward, ForwardRequest, UpstreamPort
+> **Workflow:** PR-based, protected `main`, Conventional Commits
+> **Domain:** BffGateway, GatewayForward, ForwardRequest, ApiGateway, StoreAccount
 
-## Commands (verify gates)
+## Verification
 
 | Gate | Command |
-| ------ | --------- |
-| lint | `cd frontend && npm run lint` |
-| typecheck | `cd frontend && npm run typecheck` (`tsc --noEmit`) |
-| test (frontend) | `cd frontend && npm test` (Vitest 15 tests) |
-| test (backend) | `cd gateway-go && go test ./...` |
-| build (frontend) | `cd frontend && npm run build` |
-| build (backend) | `cd gateway-go && go build ./...` |
-| e2e | `cd frontend && npm run test:e2e` (Playwright, auto-starts H2 + dev servers) |
-| import-boundaries | `test -f specs/import-boundaries.json && bash scripts/check-import-boundaries.sh` |
+| --- | --- |
+| frontend lint | `cd frontend && npm run lint` |
+| frontend typecheck | `cd frontend && npm run typecheck` |
+| frontend test | `cd frontend && npm test` |
+| frontend build | `cd frontend && npm run build` |
+| backend build | `cd gateway-go && go build ./...` |
+| backend vet | `cd gateway-go && go vet ./...` |
+| backend test | `cd gateway-go && go test ./...` |
+| e2e | `cd frontend && npm run test:e2e` |
 
 ## Architecture
 
-- **BFF Gateway** (`frontend/src/lib/bffGateway.ts` deep Module): hides `getSessionToken→401`, `callBackend`+20s Abort, `envelopeError` mapping; adapters in `frontend/src/app/gw/**`
-- **GatewayForward** (`gateway-go/internal/service/forward.go`): typed `ForwardRequest{PathName, QueryParams, Headers, Body}`; `ParseForwardPath` tolerant decode (`?foo→""`, last-wins, no double-decode), canonical `JavaURLEncode` only in `BuildForwardURL`
-- **UpstreamPort**: internal to `GatewayForward` (`net/http` client, 5s dial / 30s timeout), not exposed until 2 adapters justified
+- **BffGateway:** `frontend/src/lib/bffGateway.ts` owns session → `401`, backend fetch + 20s abort, private sanitization, execute mapping, and envelope → `NextResponse` translation.
+- **BFF adapters:** `frontend/src/app/gw/[...path]/route.ts` dispatches the declarative table in `frontend/src/lib/gwRoutes.ts`.
+- **GatewayForward:** `gateway-go/internal/service/forward.go` accepts typed `ForwardRequest`, applies persisted allowlists, encodes query parameters once, and calls the upstream client.
+- **Response contract:** `gateway-go/internal/api` owns envelope codes and error-to-response mapping.
+- **Persistence:** `gateway-go/internal/store` is split by entity and uses positional pgx collection helpers for repeated row mapping.
+
+## Hard gates
+
+- Unauthenticated BFF calls return `401` with `{code:"98"}`.
+- Envelope `code "00"` is success; all other codes are errors.
+- JWT stays in an `httpOnly`/`SameSite=Lax`/secure-in-production cookie, never `localStorage`.
+- Forward query parsing remains tolerant: valueless keys become empty values, duplicates keep the last value, and values are not decoded twice.
+- `/health` remains `{"status":"ok"}` for Kubernetes probes.
 
 ## Conventions
 
-- JWT `httpOnly`/`SameSite=Lax`/`Secure` (`COOKIE_SECURE`/`NODE_ENV`), never `localStorage`; envelope `code "00"` success
-- `H2` `local` profile + `data.sql` for tests (Local-substitutable)
-- Reuse before new dep; stdlib/platform first; `ponytail:` ceiling comments for deliberate limits
-- Commit: Conventional Commits (`feat:`, `fix:`) — see `CONVENTIONS.md`
-
-## Specs Layout
-
-- `specs/tech-architecture/tech-stack.md` (ubiquitous terms) ✓
-- `specs/PLAN-AUDIT_LATEST.md` (audit verdict) ✓
-- `specs/product/SCOPE_LATEST.yaml` (next: `scope-work`)
-- `specs/epics/` + `specs/adr/` + `state.yaml` (to be bootstrapped via `seed-conventions`)
-
-## Hard Gates (from audit)
-
-- **BffGateway**: unauthenticated → `401` `{code:"98"}`; envelope `code "00"` mapping; `sanitizeHeaders`/`sanitizeParams` private in BFF
-- **GatewayForward**: `ForwardRequest` contract, tolerant query, single `URLEncoder` place
-
-## Workflow
-
-- `team-pr`: branch from `main` → PR → review → merge; protected `main`
-- CI: GitHub Actions (to be wired via `wire-ci`)
-- Backend lint: `cd gateway-go && go vet ./...`
+- Reuse before new dependency; stdlib/platform first.
+- Keep handlers as adapters and domain behavior in services.
+- Keep PostgreSQL runtime data in ignored `project/db-data/`; seed fresh databases from `project/pg-init-scripts/gateway.sql`.
+- Branches use `refactor/`, `feat/`, `fix/`, `chore/`; commits use Conventional Commits.
