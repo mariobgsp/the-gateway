@@ -1,64 +1,32 @@
 # CONVENTIONS.md — The Gateway
 
-## Git Workflow: team-pr
+## Git workflow
 
-- **Main branch:** `main` protected
-- **Feature branch:** `feat/<slug>` or `fix/<slug>` from `main`
-- **PR required:** 1 review, CI green (`lint`, `typecheck`, `test`, `build`), no direct push to `main`
-- **Merge:** squash or merge commit; `Merge pull request` retained for audit
-- **Branch naming:** `feat/`, `fix/`, `chore/`, `refactor/` prefixes
+- `main` is protected.
+- Branch from `main` using `feat/`, `fix/`, `refactor/`, or `chore/`.
+- Merge through a reviewed pull request with green CI.
+- Prefer separate, reversible PRs for independent refactors.
 
-## Commit: Conventional Commits
+## Commits
 
-- Format: `<type>(<scope>): <subject>` where `<type>` = `feat` | `fix` | `docs` | `refactor` | `test` | `chore` | `perf` | `ci`
-- Subject imperative, no period, ≤72 chars
-- Body optional, wrap 72
-- Examples: `feat(bff): add BffGateway proxy`, `fix(gateway): tolerant decode for ?foo`
-- Tooling: enforced via commit-msg hook (to be added) and PR title check
+Use `<type>(<scope>): <imperative subject>` with a 72-character subject limit. Valid types include `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, and `ci`.
 
-## Code Style & Gates
+## Code style
 
-| Gate | Command | When |
-| ------ | --------- | ------ |
-| lint (frontend) | `cd frontend && npm run lint` | `audit-code` lint gate |
-| typecheck (frontend) | `cd frontend && npm run typecheck` | `verify-work` mechanical |
-| lint (backend) | `cd gateway-go && go vet ./...` | `audit-code` lint gate |
-| build (frontend) | `cd frontend && npm run build` | `verify-work` mechanical |
-| build (backend) | `cd gateway-go && go build ./...` | `verify-work` |
-| test (frontend) | `cd frontend && npm test` | `develop-tdd` red-green |
-| test (backend) | `cd gateway-go && go test ./...` | `develop-tdd` |
-| e2e | `cd frontend && npm run test:e2e` | `verify-work` full-stack |
-| import-boundaries | `test -f specs/import-boundaries.json && bash scripts/check-import-boundaries.sh` | on module split/merge |
+- TypeScript: strict mode, existing Next.js/React patterns, no unnecessary abstractions.
+- Go: `gofmt`, `go vet`, small adapters, service logic behind typed seams.
+- Reuse before a new dependency; stdlib/platform first.
+- Do not store JWTs in browser storage.
+- Keep response codes and route contracts centralized.
 
-## Release
+## Required gates
 
-- Versioning: SemVer via tags; Conventional Commits drive changelog
-- Integration: `release-branch` skill creates PR, verifies coverage gates, cleans worktree
+```bash
+cd frontend && npm run lint && npm run typecheck && npm test && npm run build
+cd gateway-go && go build ./... && go vet ./... && go test ./...
+cd frontend && npm run test:e2e
+```
 
-## CI: GitHub Actions
+## Domain terms
 
-- Platform: **GitHub Actions** (answer recorded 2026-08-25)
-- Workflows: `.github/workflows/ci.yml` (backend build/vet/test, frontend lint→typecheck→test→build)
-- Secrets: `BACKEND_API_URL`, `DATABASE_URL` for docker
-
-## Specs Layout (bigpowers)
-
-- `specs/product/SCOPE_LATEST.yaml` (scope-work)
-- `specs/tech-architecture/tech-stack.md` ✓
-- `specs/tech-architecture/adr/` (ADRs)
-- `specs/epics/` (slice-tasks → plan-work)
-- `specs/PLAN-AUDIT_LATEST.md` ✓
-- `state.yaml` / `planning-status.yaml` (seed-conventions)
-
-## Domain Language
-
-See `specs/tech-architecture/tech-stack.md`: BffGateway, GatewayForward, ForwardRequest, UpstreamPort, ApiGateway, StoreAccount, SystemProperties
-
-## E2E Port Note
-
-- `frontend/playwright.config.ts` uses `3001` not `3000` to avoid clash with `vivante` dev server on `3000` (uid 100, cannot `fuser -k` without sudo). Original `3000` is canonical; `3001` is intentional workaround until reboot. `package-lock.json` noise reverted.
-
-## Ponytail / Caveman
-
-- Ponytail `full` ladder: YAGNI → reuse → stdlib → native → installed dep → one-liner → minimum code; `ponytail:` ceiling comments
-- Caveman terse responses (drop articles, fragments OK), code unchanged
+See `specs/tech-architecture/tech-stack.md` for BffGateway, GatewayForward, ForwardRequest, ApiGateway, and StoreAccount.

@@ -1,6 +1,10 @@
 package service
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/mariobgsp/the-gateway/gateway-go/internal/api"
+)
 
 func TestValidateSaveApi(t *testing.T) {
 	good := SaveApiInput{ApiIdentifier: "id1", Name: "n", Host: "https://example.com", Path: "/p", Method: "GET"}
@@ -25,19 +29,18 @@ func TestValidateSaveApi(t *testing.T) {
 	for _, c := range cases {
 		in := good
 		c.mutate(&in)
-		err, ok := ValidateSaveApi(in).(*SvcError)
+		fault, ok := ValidateSaveApi(in).(*api.Error)
 		if !ok {
-			t.Fatalf("%s: expected SvcError, got %v", c.name, err)
+			t.Fatalf("%s: expected *api.Error, got %v", c.name, fault)
 		}
-		if err.HTTPStatus != 400 || err.Code != "04" {
-			t.Fatalf("%s: wrong status/code: %+v", c.name, err)
+		if fault.HTTPStatus != 400 || fault.Code != api.CodeBadRequest {
+			t.Fatalf("%s: wrong status/code: %+v", c.name, fault)
 		}
-		want := "04:BadRequest:" + c.msg
-		if err.Message != want {
-			t.Fatalf("%s: message %q != %q", c.name, err.Message, want)
+		if fault.Message != c.msg {
+			t.Fatalf("%s: message %q != %q", c.name, fault.Message, c.msg)
 		}
 	}
-	// PATCH allowed per ALLOWED_METHODS (BFF + service agree)
+	// PATCH allowed per allowedMethods (BFF + service agree)
 	patched := good
 	patched.Method = "patch"
 	if err := ValidateSaveApi(patched); err != nil {
